@@ -13,6 +13,7 @@ using uPLibrary.Networking.M2Mqtt;
 using RestSharp;
 using System.Data.SqlClient;
 using Switch.Models;
+using System.Reflection;
 
 namespace Switch
 {
@@ -30,55 +31,68 @@ namespace Switch
         public Form1()
         {
             InitializeComponent();
+            client = new RestClient(baseURI);
+
         }
 
+        //Ligar/Abrir Válvula
         private void btnOn_Click(object sender, EventArgs e)
         {
+            //Definir Conexão à BD
             SqlConnection con = new SqlConnection(conn_string);
 
-            string ModuleName = textBoxModuleName.Text;
+            string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
 
             SqlDataReader SR = null;
             con.Open();
-            string sql = "SELECT Id FROM Module WHERE name=@name";
+            //Selecionar id do container com o nome a ser usado
+            string sql = "SELECT Id FROM Container WHERE name=@name";
             SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@name", ModuleName);
+            cmd.Parameters.AddWithValue("@name", ContainerName);
 
+            //Selecionar id da App com o nome a ser usada
             SqlDataReader SRapp = null;
-            string sqlApp = "SELECT Id FROM Application WHERE Name=@nameApp";
+            string sqlApp = "SELECT Id FROM Application WHERE name=@nameApp";
             SqlCommand cmdApp = new SqlCommand(sqlApp, con);
             cmdApp.Parameters.AddWithValue("@nameApp", AppName);
 
-            SqlDataReader SRmodule = null;
+
+            //Selecionar Parent do container com o nome a ser usado
+            SqlDataReader SRcontainer = null;
             //con.Open();
-            string sqlModule = "SELECT Parent FROM Module WHERE name=@nameModule";
-            SqlCommand cmdModule = new SqlCommand(sqlModule, con);
-            cmdModule.Parameters.AddWithValue("@nameModule", ModuleName);
+            string sqlContainer = "SELECT Parent FROM Container WHERE name=@nameContainer";
+            SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
+            cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
             RestRequest request = new RestRequest("api/somiod/{application}/{module}", Method.Post);
 
-            string json = File.ReadAllText(@"" + ProjectPath + "\\SOMIOD\\ComandoREST\\PortaoInterface\\bin\\Debug\\Names.txt");
+
+            //Caminho com nomes
+            string json = File.ReadAllText(@"" + ProjectPath + "\\ProjetoIS_02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
-            if (json == textBoxModuleName.Text)
+            //verificar se o nome da App do ficheiro é igual ao inserido
+            if (json == textBoxContainerName.Text)
             {
+                //Leitura da App
                 SRapp = cmdApp.ExecuteReader();
                 if (SRapp.Read())
                 {
                     int idApp = (int)SRapp.GetValue(0);
                     SRapp.Close();
 
-
-                    SRmodule = cmdModule.ExecuteReader();
-                    if (SRmodule.Read())
+                    //Leitura do Container
+                    SRcontainer = cmdContainer.ExecuteReader();
+                    if (SRcontainer.Read())
                     {
-                        int parentModule = (int)SRmodule.GetValue(0);
-                        SRmodule.Close();
+                        int parentContainer = (int)SRcontainer.GetValue(0);
+                        SRcontainer.Close();
 
+                        //Comparar id da app com o id do parent do Container
                         SR = cmd.ExecuteReader();
-                        if (idApp == parentModule && SR.Read())
+                        if (idApp == parentContainer && SR.Read())
                         {
                             int parent = (int)SR.GetValue(0);
                             SR.Close();
@@ -86,14 +100,14 @@ namespace Switch
                             {
                                 Res_type = "data",
                                 content = "On",
-                                creation_dt = DateTime.Now.ToString("hh:mm:ss tt"),
+                                creation_dt = DateTime.Now,
                                 parent = parent,
 
                             };
 
                             request.AddBody(data);
                             request.AddUrlSegment("application", textBoxAppName.Text);
-                            request.AddUrlSegment("module", textBoxModuleName.Text);
+                            request.AddUrlSegment("container", textBoxContainerName.Text);
 
 
                             var response = client.Execute(request);
@@ -103,13 +117,13 @@ namespace Switch
                         }
                         else
                         {
-                            MessageBox.Show("O id da App e o parent do Module nao coincidem");
+                            MessageBox.Show("O id da App e o parent do Container nao coincidem");
                             con.Close();
                         }
                     }
                     else
                     {
-                        MessageBox.Show("ERRO AO LER O MODULE");
+                        MessageBox.Show("ERRO AO LER O CONTAINER");
                         con.Close();
                     }
                 }
@@ -129,7 +143,52 @@ namespace Switch
 
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
+    
+        }
 
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void postButton_Click(object sender, EventArgs e)
+        {
+            SqlConnection con = new SqlConnection(conn_string);
+
+            SqlDataReader SR = null;
+            con.Open();
+            string sql = "SELECT Id FROM Application WHERE name=@name";
+            SqlCommand cmd = new SqlCommand(sql, con);
+            cmd.Parameters.AddWithValue("@name", textBoxAppContainer.Text);
+
+            SR = cmd.ExecuteReader();
+
+            if (SR.Read())
+            {
+                int parent = (int)SR.GetValue(0);
+                string name = textBoxCreateContainer.Text;
+                RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
+
+                Models.Container module = new Models.Container
+                {
+                    Res_type = "module",
+                    name = name,
+                    creation_dt = DateTime.Now,
+                    parent = parent
+                };
+
+                request.AddBody(module);
+                request.AddUrlSegment("application", textBoxAppContainer.Text);
+
+                var response = client.Execute(request);
+                MessageBox.Show(response.StatusCode.ToString());
+
+            }
+            else
+            {
+                MessageBox.Show("A APLICACAO NAO EXISTE");
+                con.Close();
+            }
         }
     }
 }
