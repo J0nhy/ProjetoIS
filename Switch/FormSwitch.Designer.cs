@@ -1,6 +1,6 @@
 ﻿namespace Switch
 {
-    partial class Form1
+    partial class FormSwitch
     {
         /// <summary>
         /// Required designer variable.
