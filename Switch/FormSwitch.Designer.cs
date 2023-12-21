@@ -65,6 +65,7 @@
             this.btnOff.TabIndex = 1;
             this.btnOff.Text = "OFF";
             this.btnOff.UseVisualStyleBackColor = true;
+            this.btnOff.Click += new System.EventHandler(this.btnOff_Click);
             // 
             // textBoxContainerName
             // 
@@ -100,6 +101,8 @@
             // 
             // panel1
             // 
+            this.panel1.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.postButton);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.textBoxAppContainer);
@@ -177,7 +180,7 @@
             this.label3.TabIndex = 6;
             this.label3.Text = "Connect";
             // 
-            // Form1
+            // FormSwitch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -186,7 +189,7 @@
             this.Controls.Add(this.btnOn);
             this.Controls.Add(this.panel1);
             this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "Form1";
+            this.Name = "FormSwitch";
             this.Text = "Switch";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

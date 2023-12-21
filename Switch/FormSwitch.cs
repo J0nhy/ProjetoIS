@@ -21,8 +21,8 @@ namespace Switch
     {
 
         string baseURI = @"http://localhost:55398/";
-        string conn_string = System.Configuration.ConfigurationManager.ConnectionStrings["connection_string"].ConnectionString.ToString();
-        string ProjectPath = @"C:\DevelopmentIS\";
+        string conn_string = System.Configuration.ConfigurationManager.ConnectionStrings["Switch.Properties.Settings.ConnStr"].ConnectionString.ToString();
+        string path = @"C:\DevelopmentIS\";
 
         RestClient client = null;
 
@@ -70,7 +70,7 @@ namespace Switch
 
 
             //Caminho com nomes
-            string json = File.ReadAllText(@"" + ProjectPath + "\\ProjetoIS_02\\Valvula\\bin\\Debug\\Names.txt");
+            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
             //verificar se o nome da App do ficheiro é igual ao inserido
@@ -123,13 +123,13 @@ namespace Switch
                     }
                     else
                     {
-                        MessageBox.Show("ERRO AO LER O CONTAINER");
+                        MessageBox.Show("Erro a ler o container dado");
                         con.Close();
                     }
                 }
                 else
                 {
-                    MessageBox.Show("ERRO AO LER A APPLICATION");
+                    MessageBox.Show("Erro a ler a application dada");
                     con.Close();
                 }
             }
@@ -169,7 +169,7 @@ namespace Switch
                 string name = textBoxCreateContainer.Text;
                 RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
 
-                Models.Container module = new Models.Container
+                Models.Container container = new Models.Container
                 {
                     Res_type = "module",
                     name = name,
@@ -177,7 +177,7 @@ namespace Switch
                     parent = parent
                 };
 
-                request.AddBody(module);
+                request.AddBody(container);
                 request.AddUrlSegment("application", textBoxAppContainer.Text);
 
                 var response = client.Execute(request);
@@ -186,7 +186,106 @@ namespace Switch
             }
             else
             {
-                MessageBox.Show("A APLICACAO NAO EXISTE");
+                MessageBox.Show("A aplicacao dada não existe!");
+                con.Close();
+            }
+        }
+
+        //Desligar/Fechar Valvula
+        private void btnOff_Click(object sender, EventArgs e)
+        {
+            SqlConnection con = new SqlConnection(conn_string);
+
+            string ContainerName = textBoxAppContainer.Text;
+            string AppName = textBoxAppName.Text;
+
+
+            SqlDataReader SR = null;
+            con.Open();
+
+            //Selecionar container com o nome dado
+            string sql = "SELECT Id FROM Container WHERE name=@name";
+            SqlCommand cmd = new SqlCommand(sql, con);
+            cmd.Parameters.AddWithValue("@name", ContainerName);
+
+            //Selecionar app com o nome dado
+            SqlDataReader SRapp = null;
+            string sqlApp = "SELECT Id FROM Application WHERE Name=@nameApp";
+            SqlCommand cmdApp = new SqlCommand(sqlApp, con);
+            cmdApp.Parameters.AddWithValue("@nameApp", AppName);
+
+            SqlDataReader SRcontainer = null;
+            
+            //Selecionar parent do container
+            string sqlModule = "SELECT Parent FROM Container WHERE name=@nameContainer";
+            SqlCommand cmdModule = new SqlCommand(sqlModule, con);
+            cmdModule.Parameters.AddWithValue("@nameContainer", ContainerName);
+
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
+
+            string json = File.ReadAllText(@"" + path + "\\SOMIOD\\ComandoREST\\PortaoInterface\\bin\\Debug\\Names.txt");
+            json = json.Remove(json.Length - 2);
+
+            if (json == textBoxContainerName.Text)
+            {
+                SRapp = cmdApp.ExecuteReader();
+                if (SRapp.Read())
+                {
+                    int idApp = (int)SRapp.GetValue(0);
+                    SRapp.Close();
+
+
+                    SRcontainer = cmdModule.ExecuteReader();
+                    if (SRcontainer.Read())
+                    {
+                        int parentModule = (int)SRcontainer.GetValue(0);
+                        SRcontainer.Close();
+
+                        SR = cmd.ExecuteReader();
+                        if (idApp == parentModule && SR.Read())
+                        {
+                            int parent = (int)SR.GetValue(0);
+                            SR.Close();
+                            Data data = new Data
+                            {
+                                Res_type = "data",
+                                creation_dt = DateTime.Now,
+                                parent = parent,
+
+                            };
+
+                            request.AddBody(data);
+                            request.AddUrlSegment("application", textBoxAppName.Text);
+                            request.AddUrlSegment("container", textBoxContainerName.Text);
+
+
+                            var response = client.Execute(request);
+                            MessageBox.Show(response.StatusCode.ToString());
+                            con.Close();
+
+
+                        }
+                        else
+                        {
+                            MessageBox.Show("THE ID OF THE APP DOESNT MATCH THE CONTAINER PARENT");
+                            con.Close();
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("CONTAINER DOESNT EXIST");
+                        con.Close();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("APPLICATION DOESNT EXIST");
+                    con.Close();
+                }
+            }
+            else
+            {
+                MessageBox.Show("DOESN'T HAVE THE SAME TOPIC AS THE GATE");
                 con.Close();
             }
         }
