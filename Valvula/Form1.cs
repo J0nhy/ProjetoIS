@@ -4,30 +4,47 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using Valvula.Properties;
+using System.Configuration;
+using RestSharp;
+using Aplicacao = Valvula.Models.Aplicacao;
+using Container = Valvula.Models.Container;
+using Subscricao = Valvula.Models.Subscricao;
+using Dados = Valvula.Models.Dados;
+using System.IO;
+using System.Net;
+using Image = System.Drawing.Image;
+using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Messages;
+using static System.Net.Mime.MediaTypeNames;
+using System.Web.UI.WebControls;
+using AxWMPLib;
+using System.Web.Security;
+
 
 namespace Valvula
 {
     public partial class Form1 : Form
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        private AxWMPLib.AxWindowsMediaPlayer axWindowsMediaPlayer;
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // Stop any currently playing video
+            axWindowsMediaPlayer.Ctlcontrols.stop();
 
+            // Play the video for "Off"
+            axWindowsMediaPlayer.URL = videoOff;
+            axWindowsMediaPlayer.Ctlcontrols.play();
+            label4.Text = "Off";
         }
-        string conn_string = System.Configuration.ConfigurationManager.ConnectionStrings["connection_string"].ConnectionString.ToString();
 
-
+        string conn_string = ""; //System.Configuration.ConfigurationManager.ConnectionStrings["connection_string"].ConnectionString.ToString();
 
         string baseURI = @"http://localhost:55398/"; //TODO: needs to be updated!
 
@@ -35,28 +52,38 @@ namespace Valvula
 
         MqttClient mClient;
 
-        string PortaoPath = Environment.CurrentDirectory;
+        string ValvPath = Environment.CurrentDirectory;
+        string imgOn, imgOff, videoOn, videoOff;
 
-
-
-        public Portao()
+        public Form1()
         {
             InitializeComponent();
             client = new RestClient(baseURI);
+
+            imgOn = @"" + ValvPath + "\\ValveOn.png";
+            imgOff = @"" + ValvPath + "\\ValveOff.png";
+            videoOn = @"" + ValvPath + "\\VideoOn.mp3";
+            videoOff = @"" + ValvPath + "\\VideoOff.mp3";
+
+            // Inicialize o controle AxWindowsMediaPlayer
+            axWindowsMediaPlayer = new AxWMPLib.AxWindowsMediaPlayer();
+            axWindowsMediaPlayer.Dock = DockStyle.Fill;
+
+            // Adicione AxWindowsMediaPlayer ao formulário
+            Controls.Add(axWindowsMediaPlayer);
+
         }
-
-
 
         private void button2_Click(object sender, EventArgs e) //post app
         {
 
-            string name = textBoxAppName.Text;
+            string name = txtNome.Text;
 
             RestRequest request = new RestRequest("api/somiod/", Method.Post);
 
-            Application app = new Application
+            Aplicacao app = new Aplicacao
             {
-                Res_type = "application",
+                Res_type = "Aplicacao",
                 Name = name,
                 Creation_dt = DateTime.Now.ToString("hh:mm:ss tt")
             };
@@ -64,50 +91,51 @@ namespace Valvula
             request.AddBody(app);
 
             var response = client.Execute(request);
-            MessageBox.Show(response.StatusCode.ToString());
+
+            MessageBox.Show("Done: " + response.StatusCode.ToString());
 
         }
 
-        private void button3_Click(object sender, EventArgs e)//post module
+        private void button3_Click(object sender, EventArgs e)//post container
         {
 
-            //SqlConnection con = new SqlConnection(connectionString.ConnectionString);
+            SqlConnection conn = new SqlConnection(conn_string);
 
-            SqlConnection con = new SqlConnection(conn_string);
+            SqlDataReader reader = null;
+            conn.Open();
 
-            SqlDataReader SR = null;
-            con.Open();
-            string sql = "SELECT Id FROM Application WHERE Name=@name";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@name", textBoxAppName.Text);
+            string sql = "select Id from Aplicacao where Name=@name";
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", txtNome.Text);
 
-            SR = cmd.ExecuteReader();
+            reader = cmd.ExecuteReader();
 
-            if (SR.Read())
+            if (reader.Read())
             {
-                int parent = (int)SR.GetValue(0);
-                string name = textBoxModuleName.Text;
-                RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
+                int parent = (int)reader.GetValue(0);
+                string name = txtNomeContainer.Text;
 
-                Module module = new Module
+                RestRequest request = new RestRequest("api/somiod/{Aplicacao}", Method.Post);
+
+                Container container = new Container
                 {
-                    Res_type = "module",
+                    Res_type = "container",
                     Name = name,
                     Creation_dt = DateTime.Now.ToString("hh:mm:ss tt"),
                     Parent = parent
                 };
 
-                request.AddBody(module);
-                request.AddUrlSegment("application", textBoxAppName.Text);
+                request.AddBody(container);
+                request.AddUrlSegment("Aplicacao", txtNome.Text);
 
                 var response = client.Execute(request);
-                MessageBox.Show(response.StatusCode.ToString());
+                MessageBox.Show("Done: " + response.StatusCode.ToString());
 
             }
             else
             {
-                MessageBox.Show("THE APPLICATION DOESNT EXIST");
-                con.Close();
+                MessageBox.Show("Erro no reader");
+                conn.Close();
             }
 
 
@@ -115,93 +143,91 @@ namespace Valvula
 
         private void button4_Click(object sender, EventArgs e)//post Subscription  
         {
-            SqlConnection con = new SqlConnection(conn_string);
+            SqlConnection conn = new SqlConnection(conn_string);
 
-            string AppName = textBoxAppName.Text;
-            string ModuleName = textBoxModuleName.Text;
-            string name = textBoxSubName.Text;
-            string subEvent = textBoxSubEvent.Text;
-            string endpoint = textBoxSubEndpoint.Text;
+            string NomeApp = txtNome.Text;
+            string NomeContainer = txtNomeContainer.Text;
+            string NomeSub = txtNomeSub.Text;
+            string Event = txtEvent.Text;
+            string Endpoint = txtEndpoint.Text;
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{module}", Method.Post);
-
-
-            SqlDataReader SR = null;
-            con.Open();
-            string sql = "SELECT Id FROM Module WHERE name=@name";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@name", ModuleName);
-
-            SqlDataReader SRapp = null;
-            //con.Open();
-            string sqlApp = "SELECT Id FROM Application WHERE Name=@nameApp";
-            SqlCommand cmdApp = new SqlCommand(sqlApp, con);
-            cmdApp.Parameters.AddWithValue("@nameApp", AppName);
-
-            SqlDataReader SRmodule = null;
-            //con.Open();
-            string sqlModule = "SELECT Parent FROM Module WHERE name=@nameModule";
-            SqlCommand cmdModule = new SqlCommand(sqlModule, con);
-            cmdModule.Parameters.AddWithValue("@nameModule", ModuleName);
+            RestRequest request = new RestRequest("api/somiod/{Aplicacao}/{container}", Method.Post);
 
 
-            SRapp = cmdApp.ExecuteReader();
-            if (SRapp.Read())
+            SqlDataReader reader = null;
+            SqlDataReader readercontainer = null;
+            SqlDataReader readerapp = null;
+            conn.Open();
+
+            string sql = "select Id from Container where name=@nameCont";
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@nameCont", NomeContainer);
+
+            string sqlApp = "select Id from Aplicacao where name=@nameApp";
+            SqlCommand cmdApp = new SqlCommand(sqlApp, conn);
+            cmdApp.Parameters.AddWithValue("@nameApp", NomeApp);
+
+            string sqlContainer = "SELECT Parent FROM Container WHERE name=@nameCont";
+            SqlCommand cmdContainer = new SqlCommand(sqlContainer, conn);
+            cmdContainer.Parameters.AddWithValue("@nameCont", NomeContainer);
+
+
+            readerapp = cmdApp.ExecuteReader();
+            if (readerapp.Read())
             {
-                int idApp = (int)SRapp.GetValue(0);
-                SRapp.Close();
+                int idApp = (int)readerapp.GetValue(0);
+                readerapp.Close();
 
-
-                SRmodule = cmdModule.ExecuteReader();
-                if (SRmodule.Read())
+                readercontainer = cmdContainer.ExecuteReader();
+                if (readercontainer.Read())
                 {
-                    int parentModule = (int)SRmodule.GetValue(0);
-                    SRmodule.Close();
+                    int parentCont = (int)readercontainer.GetValue(0);
+                    readercontainer.Close();
 
-                    SR = cmd.ExecuteReader();
-                    if (idApp == parentModule && SR.Read())
+                    reader = cmd.ExecuteReader();
+                    if (idApp == parentCont && reader.Read())
                     {
 
-                        int parent = (int)SR.GetValue(0);
-                        SR.Close();
-                        Subscription subscription = new Subscription
+                        int parent = (int)reader.GetValue(0);
+                        reader.Close();
+                        Subscricao subscricao = new Subscricao
                         {
-                            Res_type = "subscription",
-                            Name = name,
+                            Res_type = "subscricao",
+                            Name = NomeSub,
                             Creation_dt = DateTime.Now.ToString("hh:mm:ss tt"),
                             Parent = parent,
-                            Event = subEvent,
-                            Endpoint = endpoint
+                            Event = Event,
+                            Endpoint = Endpoint
                         };
 
 
-                        request.AddBody(subscription);
-                        request.AddUrlSegment("application", textBoxAppName.Text);
-                        request.AddUrlSegment("module", textBoxModuleName.Text);
+                        request.AddBody(subscricao);
+                        request.AddUrlSegment("Aplicacao", txtNome.Text);
+                        request.AddUrlSegment("container", txtNomeContainer.Text);
 
 
                         var response = client.Execute(request);
-                        MessageBox.Show(response.StatusCode.ToString());
-                        con.Close();
+                        MessageBox.Show("Done: " + response.StatusCode.ToString());
+                        conn.Close();
 
                     }
                     else
                     {
-                        MessageBox.Show("THE ID OF THE APP DOESNT MATCH THE MODULE PARENT");
-                        con.Close();
+                        MessageBox.Show("Error: ID não encontrado");
+                        conn.Close();
                     }
                 }
                 else
                 {
-                    MessageBox.Show("MODULE DOESNT EXIST");
-                    con.Close();
+                    MessageBox.Show("Error: Container não existe");
+                    conn.Close();
                 }
 
             }
             else
             {
-                MessageBox.Show("APPLICATION DOESNT EXIT");
-                con.Close();
+                MessageBox.Show("Error: Aplicacao não existente");
+                conn.Close();
             }
 
 
@@ -215,152 +241,202 @@ namespace Valvula
             {
                 listBox1.Items.Add(Encoding.UTF8.GetString(e.Message));
 
-                string openImage = @"" + PortaoPath + "\\garage_open.png";
-                string closeImage = @"" + PortaoPath + "\\garage_close.png";
-
                 if (listBox1.Items.Count > 0)
                 {
                     label4.Text = listBox1.Items[listBox1.Items.Count - 1].ToString();
                 }
 
-                if (label4.Text == "On")
+                // Stop any currently playing video
+                axWindowsMediaPlayer.Ctlcontrols.stop();
+
+                if (label4.Text == "Off")
                 {
 
-                    Image newImage = Image.FromFile(openImage);
+                    Image newImage = Image.FromFile(imgOn);
                     pictureBox1.Image = newImage;
+
+                    // Play the video for "On"
+                    axWindowsMediaPlayer.URL = videoOn;
+                    axWindowsMediaPlayer.Ctlcontrols.play();
+                    label4.Text = "On";
 
                 }
-                else if (label4.Text == "Off")
+                else if (label4.Text == "On")
                 {
 
-                    Image newImage = Image.FromFile(closeImage);
+                    Image newImage = Image.FromFile(imgOff);
                     pictureBox1.Image = newImage;
+
+                    // Play the video for "Off"
+                    axWindowsMediaPlayer.URL = videoOff;
+                    axWindowsMediaPlayer.Ctlcontrols.play();
+                    label4.Text = "Off";
 
                 }
             });
         }
         void client_MqttMsgSubscribed(object sender, MqttMsgSubscribedEventArgs e)
         {
-            MessageBox.Show("SUBSCRIBED WITH SUCCESS");
+            MessageBox.Show("Subscrição efetuada com sucesso");
         }
 
-        private void button1_Click_1(object sender, EventArgs e) //SUBCRIBE CHANNEL
+        private void button1_Click_1(object sender, EventArgs e)
         {
-            string[] mStrTopicsInfo = { textBox1.Text };
-            SqlConnection con = new SqlConnection(conn_string);
+            string[] str_container = { txtNovoNomeContainer.Text };
+            SqlConnection conn = new SqlConnection(conn_string);
 
-            con.Open();
+            conn.Open();
+            SqlDataReader readercontainer = null;
 
-            SqlDataReader SRmodule = null;
-            string sqlModule = "SELECT Parent FROM Module WHERE name=@nameModule";
-            SqlCommand cmdModule = new SqlCommand(sqlModule, con);
-            cmdModule.Parameters.AddWithValue("@nameModule", textBox1.Text);
+            string sqlContainer = "select Parent from Container where name=@nomeContainer";
+            SqlCommand cmdContainer = new SqlCommand(sqlContainer, conn);
+            cmdContainer.Parameters.AddWithValue("@nomeContainer", txtNovoNomeContainer.Text);
 
-            SRmodule = cmdModule.ExecuteReader();
-            if (SRmodule.Read())
+            readercontainer = cmdContainer.ExecuteReader();
+            if (readercontainer.Read())
             {
 
                 mClient = new MqttClient(IPAddress.Parse("127.0.0.1"));
                 mClient.Connect(Guid.NewGuid().ToString());
                 if (!mClient.IsConnected)
                 {
-                    MessageBox.Show("CONNECTION FAILED");
+                    MessageBox.Show("Error: client nao está ligado.");
                     return;
                 }
-                //Specify events we are interest on
-                //New Msg Arrived
+
                 mClient.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
-                //Subscribe to topics
-                byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };//QoS
-                mClient.Subscribe(mStrTopicsInfo, qosLevels);
+
+                byte[] qosLevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
+
+                // subscrever cliente
+                mClient.Subscribe(str_container, qosLevels);
                 mClient.MqttMsgSubscribed += client_MqttMsgSubscribed;
 
-                string names = @"" + PortaoPath + "\\Names.txt";
+                string names = @"" + ValvPath + "\\Names.txt";
 
                 File.WriteAllText(names, String.Empty);
-                StreamWriter sw = new StreamWriter(names, true);
-                sw.WriteLine(textBox1.Text);
-                sw.Dispose();
+                StreamWriter writer = new StreamWriter(names, true);
+                writer.WriteLine(txtNovoNomeContainer.Text);
+                writer.Dispose();
             }
             else
             {
-                MessageBox.Show("THIS MODULE DOESNT EXIST");
-                con.Close();
+                MessageBox.Show("Error: Este container nao existe.");
+                conn.Close();
             }
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(conn_string);
+            SqlConnection conn = new SqlConnection(conn_string);
 
-            string name = textBoxAppName.Text;
-            string newName = textBox2.Text;
+            string nomeApp = txtNome.Text;
+            string novoNomeApp = txtNovoNomeApp.Text;
 
-            SqlDataReader SR = null;
-            con.Open();
-            string sql = "SELECT Id FROM Application WHERE Name=@name";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@name", name);
+            SqlDataReader reader = null;
+            conn.Open();
+
+            string sql = "select Id from Aplicacao where name=@name";
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", nomeApp);
 
             RestRequest request = new RestRequest("api/somiod/{id}", Method.Put);
 
-            SR = cmd.ExecuteReader();
-            if (SR.Read())
+            reader = cmd.ExecuteReader();
+            if (reader.Read())
             {
-                int id = (int)SR.GetValue(0);
-                SR.Close();
-                Application application = new Application
+                int id = (int)reader.GetValue(0);
+                reader.Close();
+                Aplicacao Aplicacao = new Aplicacao
                 {
-                    Name = newName,
+                    Name = novoNomeApp,
                     Creation_dt = DateTime.Now.ToString("hh:mm:ss tt")
                 };
 
-                request.AddBody(application);
+                request.AddBody(Aplicacao);
                 request.AddUrlSegment("id", id);
 
                 var response = client.Execute(request);
-                MessageBox.Show(response.StatusCode.ToString());
-                con.Close();
+                MessageBox.Show("Done: " + response.StatusCode.ToString());
+                conn.Close();
             }
             else
             {
-                MessageBox.Show("APPLICATION DOESNT EXIT");
-                con.Close();
+                MessageBox.Show("Esta aplicação nao foi encontrada ou nao existe");
+                conn.Close();
             }
         }
 
         private void button6_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(conn_string);
+            SqlConnection conn = new SqlConnection(conn_string);
 
-            string name = textBoxAppName.Text;
+            string nome = txtNome.Text;
 
-            SqlDataReader SR = null;
-            con.Open();
-            string sql = "SELECT Id FROM Application WHERE Name=@name";
-            SqlCommand cmd = new SqlCommand(sql, con);
-            cmd.Parameters.AddWithValue("@name", name);
+            SqlDataReader reader = null;
+            conn.Open();
+
+            string sql = "select Id from Aplicacao where name=@name";
+            SqlCommand cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", nome);
 
             RestRequest request = new RestRequest("api/somiod/{id}", Method.Delete);
 
-            SR = cmd.ExecuteReader();
-            if (SR.Read())
+            reader = cmd.ExecuteReader();
+            if (reader.Read())
             {
-                int id = (int)SR.GetValue(0);
-                SR.Close();
+                int id = (int)reader.GetValue(0);
+                reader.Close();
 
                 request.AddUrlSegment("id", id);
 
                 var response = client.Execute(request);
-                MessageBox.Show(response.StatusCode.ToString());
-                con.Close();
+                MessageBox.Show("Done: " + response.StatusCode.ToString());
+                conn.Close();
             }
             else
             {
-                MessageBox.Show("APPLICATION DOESNT EXIT");
-                con.Close();
+                MessageBox.Show("Esta aplicação nao foi encontrada ou nao existe");
+                conn.Close();
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            //listBox1.Items.Add(Encoding.UTF8.GetString(e.Message));
+
+            if (listBox1.Items.Count > 0)
+            {
+                label4.Text = listBox1.Items[listBox1.Items.Count - 1].ToString();
+            }
+
+            // Stop any currently playing video
+            axWindowsMediaPlayer.Ctlcontrols.stop();
+
+            if (label4.Text == "Off")
+            {
+
+                Image newImage = Image.FromFile(imgOn);
+                pictureBox1.Image = newImage;
+
+                // Play the video for "On"
+                axWindowsMediaPlayer.URL = videoOn;
+                axWindowsMediaPlayer.Ctlcontrols.play();
+                label4.Text = "On";
+
+            }
+            else if (label4.Text == "On")
+            {
+
+                Image newImage = Image.FromFile(imgOff);
+                pictureBox1.Image = newImage;
+
+                // Play the video for "Off"
+                axWindowsMediaPlayer.URL = videoOff;
+                axWindowsMediaPlayer.Ctlcontrols.play();
+                label4.Text = "Off";
+
             }
         }
     }
-}
 }
