@@ -17,7 +17,7 @@ using System.Reflection;
 
 namespace Switch
 {
-    public partial class Form1 : Form
+    public partial class FormSwitch : Form
     {
 
         string baseURI = @"http://localhost:55398/";
@@ -28,7 +28,7 @@ namespace Switch
 
         MqttClient mqttClient;
 
-        public Form1()
+        public FormSwitch()
         {
             InitializeComponent();
             client = new RestClient(baseURI);
