@@ -73,6 +73,178 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/somiod/applications")]
+        public IHttpActionResult GetAllApplications()
+        {
+            try
+            {
+                List<Application> applications = new List<Application>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, name, creation_dt FROM Application";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Application app = new Application
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    name = sqlReader.GetString(1),
+                                    creation_dt = sqlReader.GetDateTime(2),
+                                };
+                                applications.Add(app);
+                            }
+                        }
+                    }
+                }
+
+                return Ok(applications);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving applications");
+            }
+        }
+
+        [HttpGet]
+        [Route("api/somiod/applications/{id}")]
+        public IHttpActionResult GetApplicationById(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, name, creation_dt FROM Application WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Application app = new Application
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    name = sqlReader.GetString(1),
+                                    creation_dt = sqlReader.GetDateTime(2),
+                                };
+                                return Ok(app);
+                            }
+                        }
+                    }
+                }
+
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving application by ID");
+            }
+        }
+
+
+
+        [HttpPut]
+        [Route("api/somiod/applications/{id}")]
+        public IHttpActionResult UpdateApplication(int id)
+        {
+            try
+            {
+                var xmlString = Request.Content.ReadAsStringAsync().Result;
+
+                if (string.IsNullOrEmpty(xmlString))
+                {
+                    return BadRequest("Invalid or empty data received");
+                }
+
+                var serializer = new XmlSerializer(typeof(Application));
+
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    TextReader reader = new StringReader(xmlString);
+
+                    var updatedApp = (Application)serializer.Deserialize(reader);
+
+                    string query = "UPDATE Application SET name = @name WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+                        command.Parameters.AddWithValue("@name", updatedApp.name);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error updating application");
+            }
+        }
+
+
+        [HttpDelete]
+        [Route("api/somiod/applications/{id}")]
+        public IHttpActionResult DeleteApplication(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "DELETE FROM Application WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error deleting application");
+            }
+        }
+
         [Route("api/somiod/{application}")]
         [HttpPost]
         public IHttpActionResult PostContainer()
@@ -125,6 +297,179 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error processing XML data");
             }
         }
+
+        [HttpGet]
+        [Route("api/somiod/containers")]
+        public IHttpActionResult GetAllContainers()
+        {
+            try
+            {
+                List<Container> containers = new List<Container>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, name, creation_dt, parent FROM Container";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Container container = new Container
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    name = sqlReader.GetString(1),
+                                    creation_dt = sqlReader.GetDateTime(2),
+                                    parent = sqlReader.GetInt32(3),
+                                };
+                                containers.Add(container);
+                            }
+                        }
+                    }
+                }
+
+                return Ok(containers);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving containers");
+            }
+        }
+
+        [HttpGet]
+        [Route("api/somiod/containers/{id}")]
+        public IHttpActionResult GetContainerById(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, name, creation_dt, parent FROM Container WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Container container = new Container
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    name = sqlReader.GetString(1),
+                                    creation_dt = sqlReader.GetDateTime(2),
+                                    parent = sqlReader.GetInt32(3),
+                                };
+                                return Ok(container);
+                            }
+                        }
+                    }
+                }
+
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving container by ID");
+            }
+        }
+
+
+        [HttpPut]
+        [Route("api/somiod/containers/{id}")]
+        public IHttpActionResult UpdateContainer(int id)
+        {
+            try
+            {
+                var xmlString = Request.Content.ReadAsStringAsync().Result;
+
+                if (string.IsNullOrEmpty(xmlString))
+                {
+                    return BadRequest("Invalid or empty data received");
+                }
+
+                var serializer = new XmlSerializer(typeof(Container));
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    TextReader reader = new StringReader(xmlString);
+
+                    var updatedContainer = (Container)serializer.Deserialize(reader);
+
+                    string query = "UPDATE Container SET name = @name, parent = @parent WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+                        command.Parameters.AddWithValue("@name", updatedContainer.name);
+                        command.Parameters.AddWithValue("@parent", updatedContainer.parent);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error updating container");
+            }
+        }
+
+        [HttpDelete]
+        [Route("api/somiod/containers/{id}")]
+        public IHttpActionResult DeleteContainer(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "DELETE FROM Container WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error deleting container");
+            }
+        }
+
 
         private Application GetApplicationByName(string applicationName)
         {
