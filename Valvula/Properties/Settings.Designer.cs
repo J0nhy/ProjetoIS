@@ -22,5 +22,15 @@ namespace Valvula.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\SOMIOD.mdf;In" +
+            "tegrated Security=True;Connect Timeout=30")]
+        public string conn_str {
+            get {
+                return ((string)(this["conn_str"]));
+            }
+        }
     }
 }
