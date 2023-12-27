@@ -44,9 +44,9 @@ namespace Valvula
             label4.Text = "Off";
         }
 
-        string conn_string = ""; //System.Configuration.ConfigurationManager.ConnectionStrings["connection_string"].ConnectionString.ToString();
+        string conn_string = Properties.Settings.Default.conn_str;
 
-        string baseURI = @"http://localhost:55398/"; //TODO: needs to be updated!
+        string baseURI = @"http://localhost:49744/"; 
 
         RestClient client = null;
 
@@ -280,7 +280,7 @@ namespace Valvula
             MessageBox.Show("Subscrição efetuada com sucesso");
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             string[] str_container = { txtNovoNomeContainer.Text };
             SqlConnection conn = new SqlConnection(conn_string);

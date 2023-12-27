@@ -86,6 +86,7 @@
             this.button6.TabIndex = 57;
             this.button6.Text = "DEL Application";
             this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // button5
             // 
@@ -95,6 +96,7 @@
             this.button5.TabIndex = 56;
             this.button5.Text = "PUT Application";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // listBox1
             // 
@@ -121,6 +123,7 @@
             this.button4.TabIndex = 41;
             this.button4.Text = "POST Subscription";
             this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
             // button3
             // 
@@ -130,6 +133,7 @@
             this.button3.TabIndex = 39;
             this.button3.Text = "POST Module";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // button2
             // 
@@ -139,6 +143,7 @@
             this.button2.TabIndex = 38;
             this.button2.Text = "POST Application";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // label1
             // 
@@ -165,6 +170,7 @@
             this.button1.TabIndex = 58;
             this.button1.Text = "Subscribe Channel";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // txtNovoNomeApp
             // 

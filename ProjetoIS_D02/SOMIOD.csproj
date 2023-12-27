@@ -83,9 +83,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\SOMIOD.mdf" />
+    <Content Include="App_Data\SOMIOD.mdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="App_Data\SOMIOD_log.ldf">
       <DependentUpon>SOMIOD.mdf</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="bin\M2Mqtt.Net.dll" />
     <Content Include="bin\M2Mqtt.Net.pdb" />
@@ -194,9 +197,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="obj\Debug\TempPE\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
