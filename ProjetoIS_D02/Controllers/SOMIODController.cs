@@ -281,7 +281,6 @@ namespace ProjetoIS_D02.Controllers
                         command.Parameters.AddWithValue("@parent", parentApp.id);
                         SqlDataReader sqlReader = command.ExecuteReader();
 
-
                         return Ok();
                     }
                     catch (Exception ex)
