@@ -14,13 +14,16 @@ using RestSharp;
 using System.Data.SqlClient;
 using Switch.Models;
 using System.Reflection;
+using uPLibrary.Networking.M2Mqtt.Messages;
+using Switch.Models;
+using System.Xml.Serialization;
 
 namespace Switch
 {
     public partial class FormSwitch : Form
     {
 
-        string baseURI = @"http://localhost:55398/";
+        string baseURI = @"http://localhost:49744/";
         string conn_string = System.Configuration.ConfigurationManager.ConnectionStrings["Switch.Properties.Settings.ConnStr"].ConnectionString.ToString();
         string path = @"C:\DevelopmentIS\";
 
@@ -66,11 +69,11 @@ namespace Switch
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{module}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
 
 
             //Caminho com nomes
-            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_02\\Valvula\\bin\\Debug\\Names.txt");
+            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
             //verificar se o nome da App do ficheiro é igual ao inserido
@@ -167,22 +170,33 @@ namespace Switch
             {
                 int parent = (int)SR.GetValue(0);
                 string name = textBoxCreateContainer.Text;
-                RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
 
-                Models.Container container = new Models.Container
+                // Serialize the Container object to XML
+                var container = new Models.Container
                 {
-                    Res_type = "module",
+                    Res_type = "container",
                     name = name,
                     creation_dt = DateTime.Now,
                     parent = parent
                 };
 
-                request.AddBody(container);
+                var serializer = new XmlSerializer(typeof(Models.Container));
+                var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, container);
+                string xmlString = stringWriter.ToString();
+
+                RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
+
+                // Set the request content type to XML
+                request.AddHeader("Content-Type", "application/xml");
+
+                // Set the request body to the XML string
+                request.AddParameter("application/xml", xmlString, ParameterType.RequestBody);
+
                 request.AddUrlSegment("application", textBoxAppContainer.Text);
 
                 var response = client.Execute(request);
                 MessageBox.Show(response.StatusCode.ToString());
-
             }
             else
             {
@@ -289,5 +303,19 @@ namespace Switch
                 con.Close();
             }
         }
+
+        private void Comando_Load(object sender, EventArgs e)
+        {
+            mqttClient = new MqttClient("127.0.0.1");
+            mqttClient.MqttMsgPublishReceived += mqttClient_MqttMsgPublishReceivedStatus;
+            mqttClient.Subscribe(new string[] { "StatusReceived" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
+            mqttClient.Connect("Status1");
+        }
+        private void mqttClient_MqttMsgPublishReceivedStatus(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
+        {
+            var message = Encoding.UTF8.GetString(e.Message);
+        }
     }
+
+
 }
