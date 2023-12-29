@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Valvula.Properties;
-using System.Configuration;
 using RestSharp;
 using Aplicacao = Valvula.Models.Aplicacao;
 using Container = Valvula.Models.Container;
@@ -44,7 +44,7 @@ namespace Valvula
             label4.Text = "Off";
         }
 
-        string conn_string = Properties.Settings.Default.conn_str;
+        string conn_string = Settings.Default.conn_str;
 
         string baseURI = @"http://localhost:49744/"; 
 
