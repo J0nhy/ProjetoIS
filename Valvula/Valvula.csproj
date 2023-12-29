@@ -141,6 +141,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="bin\Debug\Valvula.exe.config" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -194,6 +195,43 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\AxInterop.WMPLib.dll" />
+    <Content Include="bin\Debug\Interop.WMPLib.dll" />
+    <Content Include="bin\Debug\M2Mqtt.Net.dll" />
+    <Content Include="bin\Debug\M2Mqtt.Net.pdb" />
+    <Content Include="bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll" />
+    <Content Include="bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml" />
+    <Content Include="bin\Debug\RestSharp.dll" />
+    <Content Include="bin\Debug\RestSharp.xml" />
+    <Content Include="bin\Debug\System.Buffers.dll" />
+    <Content Include="bin\Debug\System.Buffers.xml" />
+    <Content Include="bin\Debug\System.Memory.dll" />
+    <Content Include="bin\Debug\System.Memory.xml" />
+    <Content Include="bin\Debug\System.Numerics.Vectors.dll" />
+    <Content Include="bin\Debug\System.Numerics.Vectors.xml" />
+    <Content Include="bin\Debug\System.Runtime.CompilerServices.Unsafe.dll" />
+    <Content Include="bin\Debug\System.Runtime.CompilerServices.Unsafe.xml" />
+    <Content Include="bin\Debug\System.Text.Encodings.Web.dll" />
+    <Content Include="bin\Debug\System.Text.Encodings.Web.xml" />
+    <Content Include="bin\Debug\System.Text.Json.dll" />
+    <Content Include="bin\Debug\System.Text.Json.xml" />
+    <Content Include="bin\Debug\System.Threading.Tasks.Extensions.dll" />
+    <Content Include="bin\Debug\System.Threading.Tasks.Extensions.xml" />
+    <Content Include="bin\Debug\System.ValueTuple.dll" />
+    <Content Include="bin\Debug\System.ValueTuple.xml" />
+    <Content Include="bin\Debug\Valvula.exe" />
+    <Content Include="bin\Debug\Valvula.pdb" />
+    <Content Include="bin\Debug\Vlc.DotNet.Core.dll" />
+    <Content Include="bin\Debug\Vlc.DotNet.Core.Interops.dll" />
+    <Content Include="bin\Debug\Xamarin.Forms.Core.dll" />
+    <Content Include="bin\Debug\Xamarin.Forms.Core.pdb" />
+    <Content Include="bin\Debug\Xamarin.Forms.Core.xml" />
+    <Content Include="bin\Debug\Xamarin.Forms.Platform.dll" />
+    <Content Include="bin\Debug\Xamarin.Forms.Xaml.dll" />
+    <Content Include="bin\Debug\Xamarin.Forms.Xaml.pdb" />
+    <Content Include="bin\Debug\Xamarin.Forms.Xaml.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
