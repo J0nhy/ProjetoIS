@@ -19,6 +19,8 @@ using Container = ProjetoIS_D02.Models.Container;
 using uPLibrary.Networking.M2Mqtt;
 using System.Net.Sockets;
 using System.Text;
+using Newtonsoft.Json;
+using System.Web.Script.Serialization;
 
 namespace ProjetoIS_D02.Controllers
 {
@@ -32,18 +34,17 @@ namespace ProjetoIS_D02.Controllers
         {
             try
             {
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var jsonContent = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(xmlString))
+                if (string.IsNullOrEmpty(jsonContent))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                // Assuming Application class structure corresponds to the XML structure
-                var serializer = new XmlSerializer(typeof(Application));
-                using (TextReader reader = new StringReader(xmlString))
+                var serializer = new JsonSerializer();
+                using (var jsonReader = new JsonTextReader(new StringReader(jsonContent)))
                 {
-                    var app = (Application)serializer.Deserialize(reader);
+                    var app = serializer.Deserialize<Application>(jsonReader);
 
                     SqlConnection conn = null;
                     string queryString = "INSERT INTO application (name, creation_dt) VALUES (@name, GETDATE());";
@@ -69,9 +70,10 @@ namespace ProjetoIS_D02.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing XML data");
+                return BadRequest("Error processing JSON data");
             }
         }
+
 
         [HttpGet]
         [Route("api/somiod/applications")]
@@ -156,6 +158,7 @@ namespace ProjetoIS_D02.Controllers
         }
 
 
+        //CRUD APPLICATION
 
         [HttpPut]
         [Route("api/somiod/applications/{id}")]
@@ -163,23 +166,19 @@ namespace ProjetoIS_D02.Controllers
         {
             try
             {
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var jsonString = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(xmlString))
+                if (string.IsNullOrEmpty(jsonString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new XmlSerializer(typeof(Application));
-
+                var serializer = new JavaScriptSerializer();
+                var updatedApp = serializer.Deserialize<Application>(jsonString);
 
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    TextReader reader = new StringReader(xmlString);
-
-                    var updatedApp = (Application)serializer.Deserialize(reader);
 
                     string query = "UPDATE Application SET name = @name WHERE id = @id";
 
@@ -207,6 +206,7 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error updating application");
             }
         }
+
 
 
         [HttpDelete]
@@ -245,6 +245,8 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //CRUD CONTAINER
+
         [Route("api/somiod/{application}")]
         [HttpPost]
         public IHttpActionResult PostContainer()
@@ -252,48 +254,42 @@ namespace ProjetoIS_D02.Controllers
             try
             {
                 var application = Request.GetRouteData().Values["application"].ToString();
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var jsonString = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(xmlString))
+                if (string.IsNullOrEmpty(jsonString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new XmlSerializer(typeof(Container));
+                var container = JsonConvert.DeserializeObject<Container>(jsonString);
 
                 Application parentApp = GetApplicationByName(application);
 
-                using (TextReader reader = new StringReader(xmlString))
+                SqlConnection conn = null;
+                string queryString = "INSERT INTO Container (name, creation_dt, parent) VALUES (@name, GETDATE(), @parent)";
+
+                try
                 {
-                    var container = (Container)serializer.Deserialize(reader);
+                    conn = new SqlConnection(connectionString);
+                    conn.Open();
 
-                    SqlConnection conn = null;
-                    string queryString = "INSERT INTO Container (name, creation_dt,parent) VALUES (@name, GETDATE(),@parent)";
+                    SqlCommand command = new SqlCommand(queryString, conn);
+                    command.Parameters.AddWithValue("@name", container.name);
+                    command.Parameters.AddWithValue("@parent", parentApp.id);
+                    SqlDataReader sqlReader = command.ExecuteReader();
 
-                    try
-                    {
-                        conn = new SqlConnection(connectionString);
-                        conn.Open();
-
-                        SqlCommand command = new SqlCommand(queryString, conn);
-                        //command.Parameters.AddWithValue("@id", container.ID);
-                        command.Parameters.AddWithValue("@name", container.name);
-                        command.Parameters.AddWithValue("@parent", parentApp.id);
-                        SqlDataReader sqlReader = command.ExecuteReader();
-
-                        return Ok();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ex.ToString());
-                        return BadRequest();
-                    }
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                    return BadRequest("Error inserting data into the database");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing XML data");
+                return BadRequest("Error processing JSON data");
             }
         }
 

@@ -47,9 +47,9 @@ namespace Switch
             string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
-
             SqlDataReader SR = null;
             con.Open();
+
             //Selecionar id do container com o nome a ser usado
             string sql = "SELECT Id FROM Container WHERE name=@name";
             SqlCommand cmd = new SqlCommand(sql, con);
@@ -99,6 +99,7 @@ namespace Switch
                         {
                             int parent = (int)SR.GetValue(0);
                             SR.Close();
+
                             Data data = new Data
                             {
                                 Res_type = "data",
