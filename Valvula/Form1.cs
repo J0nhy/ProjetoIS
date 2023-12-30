@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using Valvula.Properties;
-using System.Configuration;
 using RestSharp;
 using Aplicacao = Valvula.Models.Aplicacao;
 using Container = Valvula.Models.Container;
@@ -44,9 +44,9 @@ namespace Valvula
             label4.Text = "Off";
         }
 
-        string conn_string = ""; //System.Configuration.ConfigurationManager.ConnectionStrings["connection_string"].ConnectionString.ToString();
+        string conn_string = Settings.Default.conn_str;
 
-        string baseURI = @"http://localhost:55398/"; //TODO: needs to be updated!
+        string baseURI = @"http://localhost:49744/"; 
 
         RestClient client = null;
 
@@ -104,7 +104,7 @@ namespace Valvula
             SqlDataReader reader = null;
             conn.Open();
 
-            string sql = "select Id from Aplicacao where Name=@name";
+            string sql = "select Id from Application where Name=@name";
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", txtNome.Text);
 
@@ -115,7 +115,7 @@ namespace Valvula
                 int parent = (int)reader.GetValue(0);
                 string name = txtNomeContainer.Text;
 
-                RestRequest request = new RestRequest("api/somiod/{Aplicacao}", Method.Post);
+                RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
 
                 Container container = new Container
                 {
@@ -126,7 +126,7 @@ namespace Valvula
                 };
 
                 request.AddBody(container);
-                request.AddUrlSegment("Aplicacao", txtNome.Text);
+                request.AddUrlSegment("application", txtNome.Text);
 
                 var response = client.Execute(request);
                 MessageBox.Show("Done: " + response.StatusCode.ToString());
@@ -280,7 +280,7 @@ namespace Valvula
             MessageBox.Show("Subscrição efetuada com sucesso");
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             string[] str_container = { txtNovoNomeContainer.Text };
             SqlConnection conn = new SqlConnection(conn_string);
@@ -336,24 +336,26 @@ namespace Valvula
             SqlDataReader reader = null;
             conn.Open();
 
-            string sql = "select Id from Aplicacao where name=@name";
+            string sql = "select Id from Application where name=@name";
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", nomeApp);
 
-            RestRequest request = new RestRequest("api/somiod/{id}", Method.Put);
+            RestRequest request = new RestRequest("api/somiod/applications/{id}", Method.Put);
 
             reader = cmd.ExecuteReader();
             if (reader.Read())
             {
                 int id = (int)reader.GetValue(0);
                 reader.Close();
-                Aplicacao Aplicacao = new Aplicacao
+
+                Aplicacao updatedApp = new Aplicacao
                 {
                     Name = novoNomeApp,
+                    // Assuming you have a Creation_dt property in your Application class
                     Creation_dt = DateTime.Now.ToString("hh:mm:ss tt")
                 };
 
-                request.AddBody(Aplicacao);
+                request.AddJsonBody(updatedApp);
                 request.AddUrlSegment("id", id);
 
                 var response = client.Execute(request);
@@ -367,6 +369,7 @@ namespace Valvula
             }
         }
 
+
         private void button6_Click(object sender, EventArgs e)
         {
             SqlConnection conn = new SqlConnection(conn_string);
@@ -376,11 +379,11 @@ namespace Valvula
             SqlDataReader reader = null;
             conn.Open();
 
-            string sql = "select Id from Aplicacao where name=@name";
+            string sql = "select Id from Application where name=@name";
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", nome);
 
-            RestRequest request = new RestRequest("api/somiod/{id}", Method.Delete);
+            RestRequest request = new RestRequest("api/somiod/applications/{id}", Method.Delete);
 
             reader = cmd.ExecuteReader();
             if (reader.Read())

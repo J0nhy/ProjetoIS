@@ -71,7 +71,7 @@
             // 
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(9, 9);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(216, 180);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -86,6 +86,7 @@
             this.button6.TabIndex = 57;
             this.button6.Text = "DEL Application";
             this.button6.UseVisualStyleBackColor = true;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // button5
             // 
@@ -95,6 +96,7 @@
             this.button5.TabIndex = 56;
             this.button5.Text = "PUT Application";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // listBox1
             // 
@@ -121,6 +123,7 @@
             this.button4.TabIndex = 41;
             this.button4.Text = "POST Subscription";
             this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
             // button3
             // 
@@ -128,8 +131,9 @@
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(117, 23);
             this.button3.TabIndex = 39;
-            this.button3.Text = "POST Module";
+            this.button3.Text = "POST Container";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // button2
             // 
@@ -139,6 +143,7 @@
             this.button2.TabIndex = 38;
             this.button2.Text = "POST Application";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // label1
             // 
@@ -165,6 +170,7 @@
             this.button1.TabIndex = 58;
             this.button1.Text = "Subscribe Channel";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // txtNovoNomeApp
             // 
@@ -206,7 +212,6 @@
             this.txtEndpoint.Name = "txtEndpoint";
             this.txtEndpoint.Size = new System.Drawing.Size(88, 20);
             this.txtEndpoint.TabIndex = 68;
-            this.txtEndpoint.Text = "192.1.1.1";
             // 
             // txtEvent
             // 
@@ -214,7 +219,6 @@
             this.txtEvent.Name = "txtEvent";
             this.txtEvent.Size = new System.Drawing.Size(88, 20);
             this.txtEvent.TabIndex = 67;
-            this.txtEvent.Text = "eventt";
             // 
             // label5
             // 
@@ -228,11 +232,10 @@
             // txtNomeSub
             // 
             this.txtNomeSub.Location = new System.Drawing.Point(124, 101);
-            this.txtNomeSub.Margin = new System.Windows.Forms.Padding(2);
+            this.txtNomeSub.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.txtNomeSub.Name = "txtNomeSub";
             this.txtNomeSub.Size = new System.Drawing.Size(80, 20);
             this.txtNomeSub.TabIndex = 65;
-            this.txtNomeSub.Text = "ursosSub";
             // 
             // label3
             // 
@@ -246,11 +249,10 @@
             // txtNomeContainer
             // 
             this.txtNomeContainer.Location = new System.Drawing.Point(124, 63);
-            this.txtNomeContainer.Margin = new System.Windows.Forms.Padding(2);
+            this.txtNomeContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.txtNomeContainer.Name = "txtNomeContainer";
             this.txtNomeContainer.Size = new System.Drawing.Size(80, 20);
             this.txtNomeContainer.TabIndex = 63;
-            this.txtNomeContainer.Text = "ursosModule";
             // 
             // label2
             // 
@@ -267,7 +269,6 @@
             this.txtNome.Name = "txtNome";
             this.txtNome.Size = new System.Drawing.Size(80, 20);
             this.txtNome.TabIndex = 61;
-            this.txtNome.Text = "ursos";
             // 
             // panelContainer
             // 
@@ -277,7 +278,7 @@
             this.panelContainer.Controls.Add(this.txtNovoNomeContainer);
             this.panelContainer.Controls.Add(this.button1);
             this.panelContainer.Location = new System.Drawing.Point(254, 221);
-            this.panelContainer.Margin = new System.Windows.Forms.Padding(2);
+            this.panelContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.panelContainer.Name = "panelContainer";
             this.panelContainer.Size = new System.Drawing.Size(136, 134);
             this.panelContainer.TabIndex = 73;
@@ -306,7 +307,7 @@
             this.panel1.Controls.Add(this.txtEvent);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Location = new System.Drawing.Point(254, 24);
-            this.panel1.Margin = new System.Windows.Forms.Padding(2);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(407, 148);
             this.panel1.TabIndex = 75;
@@ -327,7 +328,7 @@
             this.panel2.Controls.Add(this.txtNovoNomeApp);
             this.panel2.Controls.Add(this.label8);
             this.panel2.Location = new System.Drawing.Point(389, 221);
-            this.panel2.Margin = new System.Windows.Forms.Padding(2);
+            this.panel2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(135, 134);
             this.panel2.TabIndex = 75;
@@ -381,7 +382,7 @@
             this.Controls.Add(this.panelContainer);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.axWindowsMediaPlayer1);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Shown += new System.EventHandler(this.Form1_Load);
