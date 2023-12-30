@@ -19,14 +19,10 @@ using Container = ProjetoIS_D02.Models.Container;
 using uPLibrary.Networking.M2Mqtt;
 using System.Net.Sockets;
 using System.Text;
-<<<<<<< HEAD
 using Data = ProjetoIS_D02.Models.Data;
 using Subscription = ProjetoIS_D02.Models.Subscription;
-
-=======
 using Newtonsoft.Json;
 using System.Web.Script.Serialization;
->>>>>>> 11f283dbd6c4ccdf1010e53655d6d8b5f04c517e
 
 namespace ProjetoIS_D02.Controllers
 {
