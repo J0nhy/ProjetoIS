@@ -256,14 +256,22 @@ namespace ProjetoIS_D02.Controllers
             try
             {
                 var application = Request.GetRouteData().Values["application"].ToString();
-                var jsonString = Request.Content.ReadAsStringAsync().Result;
+                var contentType = Request.Content.Headers.ContentType?.MediaType;
 
-                if (string.IsNullOrEmpty(jsonString))
+                var dataString = Request.Content.ReadAsStringAsync().Result;
+
+                if (string.IsNullOrEmpty(dataString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var container = JsonConvert.DeserializeObject<Container>(jsonString);
+                Container container;
+
+         
+                    // Deserialize XML if content type is XML
+                    var serializer = new XmlSerializer(typeof(Container));
+                    container = (Container)serializer.Deserialize(new StringReader(dataString));
+         
 
                 Application parentApp = GetApplicationByName(application);
 
@@ -291,9 +299,10 @@ namespace ProjetoIS_D02.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing JSON data");
+                return BadRequest("Error processing data");
             }
         }
+
 
         [HttpGet]
         [Route("api/somiod/containers")]
@@ -563,7 +572,7 @@ namespace ProjetoIS_D02.Controllers
                 {
                     conn.Open();
 
-                    string query = "INSERT INTO Data (content, parent) VALUES (@Content, @Parent); SELECT SCOPE_IDENTITY();";
+                    string query = "INSERT INTO Data (content, creation_dt, parent) VALUES (@Content, GETDATE(), @Parent); SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand command = new SqlCommand(query, conn))
                     {
