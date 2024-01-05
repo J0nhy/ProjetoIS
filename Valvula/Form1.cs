@@ -25,7 +25,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Web.UI.WebControls;
 using AxWMPLib;
 using System.Web.Security;
-
+using System.Xml.Serialization;
 
 namespace Valvula
 {
@@ -87,7 +87,7 @@ namespace Valvula
             {
                 Res_type = "Aplicacao",
                 Name = name,
-                Creation_dt = DateTime.Now.ToString("hh:mm:ss tt")
+                Creation_dt = DateTime.Now
             };
 
             request.AddBody(app);
@@ -115,24 +115,34 @@ namespace Valvula
             if (reader.Read())
             {
                 int parent = (int)reader.GetValue(0);
-                string name = txtNomeContainer.Text;
+                string name = txtNovoNomeContainer.Text;
+
+                // Serialize the Container object to XML
+                var container = new Container
+                {
+                    Res_type = "container",
+                    name = name,
+                    creation_dt = DateTime.Now,
+                    parent = parent
+                };
+
+                var serializer = new XmlSerializer(typeof(Container));
+                var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, container);
+                string xmlString = stringWriter.ToString();
 
                 RestRequest request = new RestRequest("api/somiod/{application}", Method.Post);
 
-                Container container = new Container
-                {
-                    Res_type = "container",
-                    Name = name,
-                    Creation_dt = DateTime.Now.ToString("hh:mm:ss tt"),
-                    Parent = parent
-                };
+                // Set the request content type to XML
+                request.AddHeader("Content-Type", "application/xml");
 
-                request.AddBody(container);
+                // Set the request body to the XML string
+                request.AddParameter("application/xml", xmlString, ParameterType.RequestBody);
+
                 request.AddUrlSegment("application", txtNome.Text);
 
                 var response = client.Execute(request);
-                MessageBox.Show("Done: " + response.StatusCode.ToString());
-
+                MessageBox.Show(response.StatusCode.ToString());
             }
             else
             {
@@ -196,7 +206,7 @@ namespace Valvula
                         {
                             Res_type = "subscricao",
                             Name = NomeSub,
-                            Creation_dt = DateTime.Now.ToString("hh:mm:ss tt"),
+                            Creation_dt = DateTime.Now,
                             Parent = parent,
                             Event = Event,
                             Endpoint = Endpoint
@@ -242,16 +252,16 @@ namespace Valvula
             this.Invoke((MethodInvoker)delegate ()
             {
                 listBox1.Items.Add(Encoding.UTF8.GetString(e.Message));
-
+                string valor = null;
                 if (listBox1.Items.Count > 0)
                 {
-                    label4.Text = listBox1.Items[listBox1.Items.Count - 1].ToString();
+                    valor = listBox1.Items[listBox1.Items.Count - 1].ToString();
                 }
 
                 // Stop any currently playing video
-                axWindowsMediaPlayer.Ctlcontrols.stop();
+                    axWindowsMediaPlayer.Ctlcontrols.stop();
 
-                if (label4.Text == "Off")
+                if (valor == "On")
                 {
 
                     Image newImage = Image.FromFile(imgOn);
@@ -263,7 +273,7 @@ namespace Valvula
                     label4.Text = "On";
 
                 }
-                else if (label4.Text == "On")
+                else if (valor == "Off")
                 {
 
                     Image newImage = Image.FromFile(imgOff);
@@ -328,6 +338,11 @@ namespace Valvula
             }
         }
 
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
         private void button5_Click(object sender, EventArgs e)
         {
             SqlConnection conn = new SqlConnection(conn_string);
@@ -354,7 +369,7 @@ namespace Valvula
                 {
                     Name = novoNomeApp,
                     // Assuming you have a Creation_dt property in your Application class
-                    Creation_dt = DateTime.Now.ToString("hh:mm:ss tt")
+                    Creation_dt = DateTime.Now
                 };
 
                 request.AddJsonBody(updatedApp);

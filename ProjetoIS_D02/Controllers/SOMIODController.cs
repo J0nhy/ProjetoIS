@@ -315,9 +315,9 @@ namespace ProjetoIS_D02.Controllers
                 Container container;
 
          
-                    // Deserialize XML if content type is XML
-                    var serializer = new XmlSerializer(typeof(Container));
-                    container = (Container)serializer.Deserialize(new StringReader(dataString));
+                // Deserialize XML if content type is XML
+                var serializer = new XmlSerializer(typeof(Container));
+                container = (Container)serializer.Deserialize(new StringReader(dataString));
          
 
                 Application parentApp = GetApplicationByName(application);
