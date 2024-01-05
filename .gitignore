@@ -361,5 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/ProjetoIS_D02/App_Data/SOMIOD.mdf
 /ProjetoIS_D02/App_Data/SOMIOD_log.ldf

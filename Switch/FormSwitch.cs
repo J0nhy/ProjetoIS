@@ -69,7 +69,7 @@ namespace Switch
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/data", Method.Post);
 
 
             //Caminho com nomes
@@ -211,7 +211,7 @@ namespace Switch
         {
             SqlConnection con = new SqlConnection(conn_string);
 
-            string ContainerName = textBoxAppContainer.Text;
+            string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
 
@@ -233,12 +233,14 @@ namespace Switch
             
             //Selecionar parent do container
             string sqlModule = "SELECT Parent FROM Container WHERE name=@nameContainer";
-            SqlCommand cmdModule = new SqlCommand(sqlModule, con);
-            cmdModule.Parameters.AddWithValue("@nameContainer", ContainerName);
+            SqlCommand cmdContainer = new SqlCommand(sqlModule, con);
+            cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/data", Method.Post);
 
-            string json = File.ReadAllText(@"" + path + "\\SOMIOD\\ComandoREST\\PortaoInterface\\bin\\Debug\\Names.txt");
+
+            //Caminho com nomes
+            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
             if (json == textBoxContainerName.Text)
@@ -250,20 +252,21 @@ namespace Switch
                     SRapp.Close();
 
 
-                    SRcontainer = cmdModule.ExecuteReader();
+                    SRcontainer = cmdContainer.ExecuteReader();
                     if (SRcontainer.Read())
                     {
-                        int parentModule = (int)SRcontainer.GetValue(0);
+                        int parentContainer = (int)SRcontainer.GetValue(0);
                         SRcontainer.Close();
 
                         SR = cmd.ExecuteReader();
-                        if (idApp == parentModule && SR.Read())
+                        if (idApp == parentContainer && SR.Read())
                         {
                             int parent = (int)SR.GetValue(0);
                             SR.Close();
                             Data data = new Data
                             {
                                 Res_type = "data",
+                                content = "Off",
                                 creation_dt = DateTime.Now,
                                 parent = parent,
 
