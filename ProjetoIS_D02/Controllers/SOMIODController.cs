@@ -78,7 +78,7 @@ namespace ProjetoIS_D02.Controllers
 
 
         [HttpGet]
-        [Route("api/somiod/applications")]
+        [Route("api/somiod/")]
         public IHttpActionResult GetAllApplications()
         {
             try
@@ -118,94 +118,10 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("api/somiod/applications/{id}")]
-        public IHttpActionResult GetApplicationById(int id)
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    string query = "SELECT id, name, creation_dt FROM Application WHERE id = @id";
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        command.Parameters.AddWithValue("@id", id);
-
-                        using (SqlDataReader sqlReader = command.ExecuteReader())
-                        {
-                            while (sqlReader.Read())
-                            {
-                                Application app = new Application
-                                {
-                                    id = sqlReader.GetInt32(0),
-                                    name = sqlReader.GetString(1),
-                                    creation_dt = sqlReader.GetDateTime(2),
-                                };
-                                return Ok(app);
-                            }
-                        }
-                    }
-                }
-
-                return NotFound();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving application by ID");
-            }
-        }
-
-        [HttpGet]
-        [Route("api/somiod")]
-        public IHttpActionResult GetApplicationsName()
-        {
-            try
-            {
-                List<string> applicationNames = new List<string>();
-
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    string query = "SELECT name FROM Application";
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        using (SqlDataReader sqlReader = command.ExecuteReader())
-                        {
-                            while (sqlReader.Read())
-                            {
-                                string appName = sqlReader.GetString(0);
-                                applicationNames.Add(appName);
-                            }
-                        }
-                    }
-                }
-
-                var serializer = new XmlSerializer(typeof(List<string>));
-                StringWriter xmlString = new StringWriter();
-
-                serializer.Serialize(xmlString, applicationNames);
-
-                return Ok(xmlString.ToString());
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving application names in XML format");
-            }
-        }
-
-
-
         //CRUD APPLICATION
 
         [HttpPut]
-        [Route("api/somiod/applications/{id}")]
+        [Route("api/somiod/{id}")]
         public IHttpActionResult UpdateApplication(int id)
         {
             try
@@ -254,7 +170,7 @@ namespace ProjetoIS_D02.Controllers
 
 
         [HttpDelete]
-        [Route("api/somiod/applications/{id}")]
+        [Route("api/somiod/{id}")]
         public IHttpActionResult DeleteApplication(int id)
         {
             try
@@ -459,14 +375,23 @@ namespace ProjetoIS_D02.Controllers
                     }
                 }
 
-                // Use XmlSerializer without a wrapper class
-                var serializer = new XmlSerializer(typeof(List<string>));
-                StringWriter xmlString = new StringWriter();
+                // Use XmlWriter to manually construct XML
+                StringBuilder xmlStringBuilder = new StringBuilder();
+                using (XmlWriter xmlWriter = XmlWriter.Create(xmlStringBuilder, new XmlWriterSettings { Indent = true }))
+                {
+                    xmlWriter.WriteStartDocument();
+                    xmlWriter.WriteStartElement("ArrayOfString");
 
-                // Serialize the list of strings directly
-                serializer.Serialize(xmlString, containerNames);
+                    foreach (string containerName in containerNames)
+                    {
+                        xmlWriter.WriteElementString("string", containerName);
+                    }
 
-                return Ok(xmlString.ToString());
+                    xmlWriter.WriteEndElement();
+                    xmlWriter.WriteEndDocument();
+                }
+
+                return Ok(xmlStringBuilder.ToString());
             }
             catch (Exception ex)
             {
@@ -474,6 +399,7 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error retrieving container names by parent ID in XML format");
             }
         }
+
 
 
 
@@ -565,7 +491,7 @@ namespace ProjetoIS_D02.Controllers
         }
 
 
-        //DATA STUFF
+        //CRUDS DATA
         [HttpGet]
         [Route("api/somiod/data")]
         public IHttpActionResult GetAllData()
@@ -756,7 +682,7 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-        //subscription stuff
+        //CRUDS SUBSCRIPTION
 
     
         [HttpGet]
