@@ -68,18 +68,20 @@
             // textBoxContainerName
             // 
             this.textBoxContainerName.Location = new System.Drawing.Point(142, 41);
-            this.textBoxContainerName.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBoxContainerName.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxContainerName.Name = "textBoxContainerName";
             this.textBoxContainerName.Size = new System.Drawing.Size(107, 20);
             this.textBoxContainerName.TabIndex = 2;
+            this.textBoxContainerName.Text = "www";
             // 
             // textBoxAppName
             // 
             this.textBoxAppName.Location = new System.Drawing.Point(142, 80);
-            this.textBoxAppName.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBoxAppName.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxAppName.Name = "textBoxAppName";
             this.textBoxAppName.Size = new System.Drawing.Size(107, 20);
             this.textBoxAppName.TabIndex = 3;
+            this.textBoxAppName.Text = "App";
             // 
             // label1
             // 
@@ -117,7 +119,7 @@
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.textBoxContainerName);
             this.panel1.Location = new System.Drawing.Point(272, 20);
-            this.panel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(263, 406);
             this.panel1.TabIndex = 6;
@@ -125,7 +127,7 @@
             // postButton
             // 
             this.postButton.Location = new System.Drawing.Point(78, 344);
-            this.postButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.postButton.Margin = new System.Windows.Forms.Padding(2);
             this.postButton.Name = "postButton";
             this.postButton.Size = new System.Drawing.Size(103, 19);
             this.postButton.TabIndex = 12;
@@ -147,7 +149,7 @@
             // textBoxAppContainer
             // 
             this.textBoxAppContainer.Location = new System.Drawing.Point(142, 302);
-            this.textBoxAppContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBoxAppContainer.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxAppContainer.Name = "textBoxAppContainer";
             this.textBoxAppContainer.Size = new System.Drawing.Size(107, 20);
             this.textBoxAppContainer.TabIndex = 8;
@@ -175,7 +177,7 @@
             // textBoxCreateContainer
             // 
             this.textBoxCreateContainer.Location = new System.Drawing.Point(142, 263);
-            this.textBoxCreateContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBoxCreateContainer.Margin = new System.Windows.Forms.Padding(2);
             this.textBoxCreateContainer.Name = "textBoxCreateContainer";
             this.textBoxCreateContainer.Size = new System.Drawing.Size(107, 20);
             this.textBoxCreateContainer.TabIndex = 7;

@@ -19,6 +19,10 @@ using Container = ProjetoIS_D02.Models.Container;
 using uPLibrary.Networking.M2Mqtt;
 using System.Net.Sockets;
 using System.Text;
+using Data = ProjetoIS_D02.Models.Data;
+using Subscription = ProjetoIS_D02.Models.Subscription;
+using Newtonsoft.Json;
+using System.Web.Script.Serialization;
 
 namespace ProjetoIS_D02.Controllers
 {
@@ -32,18 +36,17 @@ namespace ProjetoIS_D02.Controllers
         {
             try
             {
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var jsonContent = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(xmlString))
+                if (string.IsNullOrEmpty(jsonContent))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                // Assuming Application class structure corresponds to the XML structure
-                var serializer = new XmlSerializer(typeof(Application));
-                using (TextReader reader = new StringReader(xmlString))
+                var serializer = new JsonSerializer();
+                using (var jsonReader = new JsonTextReader(new StringReader(jsonContent)))
                 {
-                    var app = (Application)serializer.Deserialize(reader);
+                    var app = serializer.Deserialize<Application>(jsonReader);
 
                     SqlConnection conn = null;
                     string queryString = "INSERT INTO application (name, creation_dt) VALUES (@name, GETDATE());";
@@ -69,9 +72,10 @@ namespace ProjetoIS_D02.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing XML data");
+                return BadRequest("Error processing JSON data");
             }
         }
+
 
         [HttpGet]
         [Route("api/somiod/applications")]
@@ -198,6 +202,7 @@ namespace ProjetoIS_D02.Controllers
 
 
 
+        //CRUD APPLICATION
 
         [HttpPut]
         [Route("api/somiod/applications/{id}")]
@@ -205,23 +210,19 @@ namespace ProjetoIS_D02.Controllers
         {
             try
             {
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var jsonString = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(xmlString))
+                if (string.IsNullOrEmpty(jsonString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new XmlSerializer(typeof(Application));
-
+                var serializer = new JavaScriptSerializer();
+                var updatedApp = serializer.Deserialize<Application>(jsonString);
 
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    TextReader reader = new StringReader(xmlString);
-
-                    var updatedApp = (Application)serializer.Deserialize(reader);
 
                     string query = "UPDATE Application SET name = @name WHERE id = @id";
 
@@ -249,6 +250,7 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error updating application");
             }
         }
+
 
 
         [HttpDelete]
@@ -287,6 +289,8 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //CRUD CONTAINER
+
         [Route("api/somiod/{application}")]
         [HttpPost]
         public IHttpActionResult PostContainer()
@@ -294,50 +298,53 @@ namespace ProjetoIS_D02.Controllers
             try
             {
                 var application = Request.GetRouteData().Values["application"].ToString();
-                var xmlString = Request.Content.ReadAsStringAsync().Result;
+                var contentType = Request.Content.Headers.ContentType?.MediaType;
 
-                if (string.IsNullOrEmpty(xmlString))
+                var dataString = Request.Content.ReadAsStringAsync().Result;
+
+                if (string.IsNullOrEmpty(dataString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new XmlSerializer(typeof(Container));
+                Container container;
+
+         
+                    // Deserialize XML if content type is XML
+                    var serializer = new XmlSerializer(typeof(Container));
+                    container = (Container)serializer.Deserialize(new StringReader(dataString));
+         
 
                 Application parentApp = GetApplicationByName(application);
 
-                using (TextReader reader = new StringReader(xmlString))
+                SqlConnection conn = null;
+                string queryString = "INSERT INTO Container (name, creation_dt, parent) VALUES (@name, GETDATE(), @parent)";
+
+                try
                 {
-                    var container = (Container)serializer.Deserialize(reader);
+                    conn = new SqlConnection(connectionString);
+                    conn.Open();
 
-                    SqlConnection conn = null;
-                    string queryString = "INSERT INTO Container (name, creation_dt,parent) VALUES (@name, GETDATE(),@parent)";
+                    SqlCommand command = new SqlCommand(queryString, conn);
+                    command.Parameters.AddWithValue("@name", container.name);
+                    command.Parameters.AddWithValue("@parent", parentApp.id);
+                    SqlDataReader sqlReader = command.ExecuteReader();
 
-                    try
-                    {
-                        conn = new SqlConnection(connectionString);
-                        conn.Open();
-
-                        SqlCommand command = new SqlCommand(queryString, conn);
-                        //command.Parameters.AddWithValue("@id", container.ID);
-                        command.Parameters.AddWithValue("@name", container.name);
-                        command.Parameters.AddWithValue("@parent", parentApp.id);
-                        SqlDataReader sqlReader = command.ExecuteReader();
-
-                        return Ok();
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ex.ToString());
-                        return BadRequest();
-                    }
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                    return BadRequest("Error inserting data into the database");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing XML data");
+                return BadRequest("Error processing data");
             }
         }
+
 
         [HttpGet]
         [Route("api/somiod/containers")]
@@ -558,6 +565,432 @@ namespace ProjetoIS_D02.Controllers
         }
 
 
+        //DATA STUFF
+        [HttpGet]
+        [Route("api/somiod/data")]
+        public IHttpActionResult GetAllData()
+        {
+            try
+            {
+                List<Data> dataList = new List<Data>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, content, parent FROM Data";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Data data = new Data
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    content = sqlReader.GetString(1),
+                                    parent = sqlReader.GetInt32(2)
+                                };
+                                dataList.Add(data);
+                            }
+                        }
+                    }
+                }
+
+                return Ok(dataList);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving data");
+            }
+        }
+
+        [HttpGet]
+        [Route("api/somiod/data/{id}")]
+        public IHttpActionResult GetDataById(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT id, content, parent FROM Data WHERE id = @Id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            if (sqlReader.Read())
+                            {
+                                Data data = new Data
+                                {
+                                    id = sqlReader.GetInt32(0),
+                                    content = sqlReader.GetString(1),
+                                    parent = sqlReader.GetInt32(2)
+                                };
+                                return Ok(data);
+                            }
+                            else
+                            {
+                                return NotFound();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving data");
+            }
+        }
+
+        [HttpPost]
+        [Route("api/somiod/data")]
+        public IHttpActionResult CreateData([FromBody] Data data)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "INSERT INTO Data (content, creation_dt, parent) VALUES (@Content, GETDATE(), @Parent); SELECT SCOPE_IDENTITY();";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@Content", data.content);
+                        command.Parameters.AddWithValue("@Parent", data.parent);
+
+                        int newId = Convert.ToInt32(command.ExecuteScalar());
+
+                        data.id = newId;
+                    }
+                }
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error creating data");
+            }
+        }
+
+        [HttpPut]
+        [Route("api/somiod/data/{id}")]
+        public IHttpActionResult UpdateData(int id, [FromBody] Data data)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "UPDATE Data SET content = @Content, parent = @Parent WHERE id = @Id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+                        command.Parameters.AddWithValue("@Content", data.content);
+                        command.Parameters.AddWithValue("@Parent", data.parent);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok(data);
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error updating data");
+            }
+        }
+
+        [HttpDelete]
+        [Route("api/somiod/data/{id}")]
+        public IHttpActionResult DeleteData(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "DELETE FROM Data WHERE id = @Id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok();
+                        }
+                        else
+                        {
+                            return NotFound();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error deleting data");
+            }
+        }
+
+        //subscription stuff
+
+    
+        [HttpGet]
+        [Route("api/somiod/subscriptions")]
+        public IHttpActionResult GetAllSubscriptions()
+        {
+            try
+            {
+                List<Subscription> subscriptionList = new List<Subscription>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT Res_type, id, name, creation_dt FROM Subscription";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                Subscription subscription = new Subscription
+                                {
+                                    Res_type = sqlReader.GetString(0),
+                                    id = sqlReader.GetInt32(1),
+                                    name = sqlReader.GetString(2),
+                                    creation_dt = sqlReader.GetDateTime(3)
+                                };
+                                subscriptionList.Add(subscription);
+                            }
+                        }
+                    }
+                }
+
+                return Ok(subscriptionList);
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine(sqlEx.ToString());
+                return BadRequest("Error retrieving subscriptions from the database.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("An unexpected error occurred while processing the request.");
+            }
+        }
+
+        [HttpGet]
+        [Route("api/somiod/subscriptions/{id}")]
+        public IHttpActionResult GetSubscriptionById(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT Res_type, id, name, creation_dt FROM Subscription WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            if (sqlReader.Read())
+                            {
+                                Subscription subscription = new Subscription
+                                {
+                                    Res_type = sqlReader.GetString(0),
+                                    id = sqlReader.GetInt32(1),
+                                    name = sqlReader.GetString(2),
+                                    creation_dt = sqlReader.GetDateTime(3)
+                                };
+
+                                return Ok(subscription);
+                            }
+                            else
+                            {
+                                return NotFound();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine(sqlEx.ToString());
+                return BadRequest("Error retrieving subscription from the database.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("An unexpected error occurred while processing the request.");
+            }
+        }
+
+
+
+
+        [HttpPost]
+        [Route("api/somiod/subscriptions")]
+        public IHttpActionResult CreateSubscription(Subscription newSubscription)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "INSERT INTO Subscription (Res_type, name, creation_dt) VALUES (@Res_type, @name, @creation_dt)";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@Res_type", newSubscription.Res_type);
+                        command.Parameters.AddWithValue("@name", newSubscription.name);
+                        command.Parameters.AddWithValue("@creation_dt", newSubscription.creation_dt);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok("Subscription created successfully");
+                        }
+                        else
+                        {
+                            return BadRequest("Failed to create subscription");
+                        }
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine(sqlEx.ToString());
+                return BadRequest("Error creating subscription in the database.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("An unexpected error occurred while processing the request.");
+            }
+        }
+
+        [HttpPut]
+        [Route("api/somiod/subscriptions/{id}")]
+        public IHttpActionResult UpdateSubscription(int id, Subscription updatedSubscription)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "UPDATE Subscription SET Res_type = @Res_type, name = @name, creation_dt = @creation_dt WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+                        command.Parameters.AddWithValue("@Res_type", updatedSubscription.Res_type);
+                        command.Parameters.AddWithValue("@name", updatedSubscription.name);
+                        command.Parameters.AddWithValue("@creation_dt", updatedSubscription.creation_dt);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok($"Subscription with ID {id} updated successfully");
+                        }
+                        else
+                        {
+                            return BadRequest($"Failed to update subscription with ID {id}");
+                        }
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine(sqlEx.ToString());
+                return BadRequest("Error updating subscription in the database.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("An unexpected error occurred while processing the request.");
+            }
+        }
+
+        [HttpDelete]
+        [Route("api/somiod/subscriptions/{id}")]
+        public IHttpActionResult DeleteSubscription(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "DELETE FROM Subscription WHERE id = @id";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@id", id);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return Ok($"Subscription with ID {id} deleted successfully");
+                        }
+                        else
+                        {
+                            return BadRequest($"Failed to delete subscription with ID {id}");
+                        }
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine(sqlEx.ToString());
+                return BadRequest("Error deleting subscription from the database.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("An unexpected error occurred while processing the request.");
+            }
+        }
+
+
+
+
+
         private Application GetApplicationByName(string applicationName)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -588,6 +1021,8 @@ namespace ProjetoIS_D02.Controllers
             }
         }
     }
+
+
 
 
 }

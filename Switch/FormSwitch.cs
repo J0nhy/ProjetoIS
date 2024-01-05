@@ -47,9 +47,9 @@ namespace Switch
             string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
-
             SqlDataReader SR = null;
             con.Open();
+
             //Selecionar id do container com o nome a ser usado
             string sql = "SELECT Id FROM Container WHERE name=@name";
             SqlCommand cmd = new SqlCommand(sql, con);
@@ -69,11 +69,11 @@ namespace Switch
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{module}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
 
 
             //Caminho com nomes
-            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_02\\Valvula\\bin\\Debug\\Names.txt");
+            string json = File.ReadAllText(@"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
             //verificar se o nome da App do ficheiro é igual ao inserido
@@ -99,6 +99,7 @@ namespace Switch
                         {
                             int parent = (int)SR.GetValue(0);
                             SR.Close();
+
                             Data data = new Data
                             {
                                 Res_type = "data",
