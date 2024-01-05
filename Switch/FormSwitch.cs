@@ -69,7 +69,7 @@ namespace Switch
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/{application}/{container}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/data", Method.Post);
 
 
             //Caminho com nomes
