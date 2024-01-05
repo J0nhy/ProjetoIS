@@ -234,6 +234,18 @@
     <Content Include="bin\Debug\Xamarin.Forms.Xaml.dll" />
     <Content Include="bin\Debug\Xamarin.Forms.Xaml.pdb" />
     <Content Include="bin\Debug\Xamarin.Forms.Xaml.xml" />
+    <None Include="Resources\VideoOn.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\VideoOff.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\ValveOff.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\ValveOn.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

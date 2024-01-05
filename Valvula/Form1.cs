@@ -60,10 +60,12 @@ namespace Valvula
             InitializeComponent();
             client = new RestClient(baseURI);
 
-            imgOn = @"" + ValvPath + "\\ValveOn.png";
-            imgOff = @"" + ValvPath + "\\ValveOff.png";
-            videoOn = @"" + ValvPath + "\\VideoOn.mp3";
-            videoOff = @"" + ValvPath + "\\VideoOff.mp3";
+            // get images and videos path from resources
+            imgOn = ValvPath + @"\Resources\ValveOn.png";
+            imgOff = ValvPath + @"\Resources\ValveOff.png";
+            videoOn = ValvPath + @"\Resources\VideoOn.mp3";
+            videoOff = ValvPath + @"\Resources\VideoOff.mp3";
+
 
             // Inicialize o controle AxWindowsMediaPlayer
             axWindowsMediaPlayer = new AxWMPLib.AxWindowsMediaPlayer();
