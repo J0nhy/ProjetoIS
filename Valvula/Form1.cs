@@ -12,7 +12,7 @@ using System.Windows.Forms;
 using System.Xml.Linq;
 using Valvula.Properties;
 using RestSharp;
-using Aplicacao = Valvula.Models.Aplicacao;
+using Application = Valvula.Models.Application;
 using Container = Valvula.Models.Container;
 using Subscricao = Valvula.Models.Subscricao;
 using Dados = Valvula.Models.Dados;
@@ -76,27 +76,31 @@ namespace Valvula
 
         }
 
+        //CREATE APP FEITO
         private void button2_Click(object sender, EventArgs e) //post app
         {
-
-            string name = txtNome.Text;
-
             RestRequest request = new RestRequest("api/somiod/", Method.Post);
 
-            Aplicacao app = new Aplicacao
+            Application app = new Application
             {
-                Res_type = "Aplicacao",
-                Name = name,
-                Creation_dt = DateTime.Now
+                res_type = "Aplicacao",
+                name = txtNovoNomeApp.Text,
+                creation_dt = DateTime.Now
             };
 
-            request.AddBody(app);
+            var serializer = new XmlSerializer(typeof(Application));
+            var stringWriter = new StringWriter();
+            serializer.Serialize(stringWriter, app);
+            string xmlString = stringWriter.ToString();
+
+            request.AddHeader("Content-Type", "application/xml");
+            request.AddParameter("application/xml", xmlString, ParameterType.RequestBody);
 
             var response = client.Execute(request);
-
             MessageBox.Show("Done: " + response.StatusCode.ToString());
-
         }
+
+
 
         private void button3_Click(object sender, EventArgs e)//post container
         {
@@ -343,6 +347,7 @@ namespace Valvula
 
         }
 
+        //UPDATE APP FEITO
         private void button5_Click(object sender, EventArgs e)
         {
             SqlConnection conn = new SqlConnection(conn_string);
@@ -357,7 +362,7 @@ namespace Valvula
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", nomeApp);
 
-            RestRequest request = new RestRequest("api/somiod/applications/{id}", Method.Put);
+            RestRequest request = new RestRequest("api/somiod/{id}", Method.Put);
 
             reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -365,14 +370,23 @@ namespace Valvula
                 int id = (int)reader.GetValue(0);
                 reader.Close();
 
-                Aplicacao updatedApp = new Aplicacao
+                Application updatedApp = new Application
                 {
-                    Name = novoNomeApp,
+                    name = novoNomeApp,
                     // Assuming you have a Creation_dt property in your Application class
-                    Creation_dt = DateTime.Now
+                    creation_dt = DateTime.Now
                 };
 
-                request.AddJsonBody(updatedApp);
+                // Serialize the updatedApp object to XML
+                var serializer = new XmlSerializer(typeof(Application));
+                var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, updatedApp);
+                string xmlString = stringWriter.ToString();
+
+                // Set the request content type to XML
+                request.AddHeader("Content-Type", "application/xml");
+                request.AddParameter("application/xml", xmlString, ParameterType.RequestBody);
+
                 request.AddUrlSegment("id", id);
 
                 var response = client.Execute(request);
@@ -385,6 +399,7 @@ namespace Valvula
                 conn.Close();
             }
         }
+
 
 
         private void button6_Click(object sender, EventArgs e)

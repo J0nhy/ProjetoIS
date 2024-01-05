@@ -33,25 +33,26 @@ namespace ProjetoIS_D02.Controllers
         MqttClient mClient;
         string path = @"C:\DevelopmentIS\";
 
-
-
+        //FEITO
+        #region CRUD APPLICATION
+        //FEITO
         [HttpPost]
         [Route("api/somiod")]
         public IHttpActionResult CreateApplication()
         {
             try
             {
-                var jsonContent = Request.Content.ReadAsStringAsync().Result;
+                var xmlContent = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(jsonContent))
+                if (string.IsNullOrEmpty(xmlContent))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new JsonSerializer();
-                using (var jsonReader = new JsonTextReader(new StringReader(jsonContent)))
+                var serializer = new XmlSerializer(typeof(Application));
+                using (var xmlReader = XmlReader.Create(new StringReader(xmlContent)))
                 {
-                    var app = serializer.Deserialize<Application>(jsonReader);
+                    var app = (Application)serializer.Deserialize(xmlReader);
 
                     SqlConnection conn = null;
                     string queryString = "INSERT INTO application (name, creation_dt) VALUES (@name, GETDATE());";
@@ -77,24 +78,24 @@ namespace ProjetoIS_D02.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error processing JSON data");
+                return BadRequest("Error processing XML data");
             }
         }
 
-
+        //FEITO  
         [HttpGet]
         [Route("api/somiod/")]
-        public IHttpActionResult GetAllApplications()
+        public IHttpActionResult GetAllApplicationNames()
         {
             try
             {
-                List<Application> applications = new List<Application>();
+                List<string> applicationNames = new List<string>();
 
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
 
-                    string query = "SELECT id, name, creation_dt FROM Application";
+                    string query = "SELECT name FROM Application";
 
                     using (SqlCommand command = new SqlCommand(query, conn))
                     {
@@ -102,65 +103,68 @@ namespace ProjetoIS_D02.Controllers
                         {
                             while (sqlReader.Read())
                             {
-                                Application app = new Application
-                                {
-                                    id = sqlReader.GetInt32(0),
-                                    name = sqlReader.GetString(1),
-                                    creation_dt = sqlReader.GetDateTime(2),
-                                };
-                                applications.Add(app);
+                                string appName = sqlReader.GetString(0);
+                                applicationNames.Add(appName);
                             }
                         }
                     }
                 }
 
-                return Ok(applications);
+                // Serialize the list of names to XML
+                var serializer = new XmlSerializer(typeof(List<string>));
+                var stringWriter = new StringWriter();
+                serializer.Serialize(stringWriter, applicationNames);
+                string xmlString = stringWriter.ToString();
+
+                return Ok(xmlString);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving applications");
+                return BadRequest("Error retrieving application names");
             }
         }
 
-        //CRUD APPLICATION
-
+        //FEITO
         [HttpPut]
         [Route("api/somiod/{id}")]
         public IHttpActionResult UpdateApplication(int id)
         {
             try
             {
-                var jsonString = Request.Content.ReadAsStringAsync().Result;
+                var xmlString = Request.Content.ReadAsStringAsync().Result;
 
-                if (string.IsNullOrEmpty(jsonString))
+                if (string.IsNullOrEmpty(xmlString))
                 {
                     return BadRequest("Invalid or empty data received");
                 }
 
-                var serializer = new JavaScriptSerializer();
-                var updatedApp = serializer.Deserialize<Application>(jsonString);
-
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                var serializer = new XmlSerializer(typeof(Application));
+                using (var xmlReader = XmlReader.Create(new StringReader(xmlString)))
                 {
-                    conn.Open();
+                    var updatedApp = (Application)serializer.Deserialize(xmlReader);
 
-                    string query = "UPDATE Application SET name = @name WHERE id = @id";
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
+                    using (SqlConnection conn = new SqlConnection(connectionString))
                     {
-                        command.Parameters.AddWithValue("@id", id);
-                        command.Parameters.AddWithValue("@name", updatedApp.name);
+                        conn.Open();
 
-                        int rowsAffected = command.ExecuteNonQuery();
+                        string query = "UPDATE Application SET name = @name WHERE id = @id";
 
-                        if (rowsAffected > 0)
+                        using (SqlCommand command = new SqlCommand(query, conn))
                         {
-                            return Ok();
-                        }
-                        else
-                        {
-                            return NotFound();
+                            command.Parameters.AddWithValue("@id", id);
+                            command.Parameters.AddWithValue("@name", updatedApp.name);
+
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected > 0)
+                            {
+                                return Ok();
+                            }
+                            else
+                            {
+                                return NotFound();
+                            }
                         }
                     }
                 }
@@ -172,6 +176,7 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //FEITO
         [HttpDelete]
         [Route("api/somiod/{id}")]
         public IHttpActionResult DeleteApplication(int id)
@@ -208,8 +213,12 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-        //CRUD CONTAINER
+        #endregion
 
+
+        #region CRUD CONTAINER
+
+        //FEITO
         [Route("api/somiod/{application}")]
         [HttpPost]
         public IHttpActionResult PostContainer()
@@ -265,7 +274,7 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-
+        //FICA?
         [HttpGet]
         [Route("api/somiod/containers")]
         public IHttpActionResult GetAllContainers()
@@ -308,6 +317,7 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //FICA?
         [HttpGet]
         [Route("api/somiod/containers/{id}")]
         public IHttpActionResult GetContainerById(int id)
@@ -350,9 +360,10 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //FEITO
         [HttpGet]
-        [Route("api/somiod/application/{parentId}/containers")]
-        public IHttpActionResult GetContainersByParentId(int parentId)
+        [Route("api/somiod/{application}/")]
+        public IHttpActionResult GetContainersByParentName(string application)
         {
             try
             {
@@ -362,19 +373,37 @@ namespace ProjetoIS_D02.Controllers
                 {
                     conn.Open();
 
-                    string query = "SELECT name FROM Container WHERE parent = @parentId";
+                    // Find the parent ID based on the parent name
+                    string parentIdQuery = "SELECT id FROM Application WHERE name = @application";
+                    int parentId;
 
-                    using (SqlCommand command = new SqlCommand(query, conn))
+                    using (SqlCommand parentIdCommand = new SqlCommand(parentIdQuery, conn))
                     {
-                        command.Parameters.AddWithValue("@parentId", parentId);
+                        parentIdCommand.Parameters.AddWithValue("@application", application);
+                        object result = parentIdCommand.ExecuteScalar();
 
-                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        if (result != null && int.TryParse(result.ToString(), out parentId))
                         {
-                            while (sqlReader.Read())
+                            // Parent ID found, now retrieve container names
+                            string query = "SELECT name FROM Container WHERE parent = @parentId";
+
+                            using (SqlCommand command = new SqlCommand(query, conn))
                             {
-                                string containerName = sqlReader.GetString(0);
-                                containerNames.Add(containerName);
+                                command.Parameters.AddWithValue("@parentId", parentId);
+
+                                using (SqlDataReader sqlReader = command.ExecuteReader())
+                                {
+                                    while (sqlReader.Read())
+                                    {
+                                        string containerName = sqlReader.GetString(0);
+                                        containerNames.Add(containerName);
+                                    }
+                                }
                             }
+                        }
+                        else
+                        {
+                            return BadRequest("Parent not found");
                         }
                     }
                 }
@@ -400,15 +429,13 @@ namespace ProjetoIS_D02.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving container names by parent ID in XML format");
+                return BadRequest("Error retrieving container names by parent name in XML format");
             }
         }
 
-
-
-
+        //FEITO
         [HttpPut]
-        [Route("api/somiod/containers/{id}")]
+        [Route("api/somiod/container/{id}")]
         public IHttpActionResult UpdateContainer(int id)
         {
             try
@@ -458,8 +485,9 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        //FEITO
         [HttpDelete]
-        [Route("api/somiod/containers/{id}")]
+        [Route("api/somiod/container/{id}")]
         public IHttpActionResult DeleteContainer(int id)
         {
             try
@@ -494,6 +522,12 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        #endregion
+
+
+
+
+        
 
         //CRUDS DATA
         [HttpGet]

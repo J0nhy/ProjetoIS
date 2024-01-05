@@ -127,9 +127,10 @@
     <Compile Include="Models\Models\Subscricao.cs" />
     <Compile Include="Models\Models\Container.cs" />
     <Compile Include="Models\Models\Dados.cs" />
-    <Compile Include="Models\Models\Aplicacao.cs" />
+    <Compile Include="Models\Models\Application.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestSharp\Serializers\DotNetXmlSerializer.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
