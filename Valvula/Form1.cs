@@ -163,7 +163,7 @@ namespace Valvula
             string Event = txtEvent.Text;
             string Endpoint = txtEndpoint.Text;
 
-            RestRequest request = new RestRequest("api/somiod/{Aplicacao}/{container}", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/subscriptions", Method.Post);
 
 
             SqlDataReader reader = null;
@@ -175,7 +175,7 @@ namespace Valvula
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@nameCont", NomeContainer);
 
-            string sqlApp = "select Id from Aplicacao where name=@nameApp";
+            string sqlApp = "select Id from Application where name=@nameApp";
             SqlCommand cmdApp = new SqlCommand(sqlApp, conn);
             cmdApp.Parameters.AddWithValue("@nameApp", NomeApp);
 
@@ -204,7 +204,7 @@ namespace Valvula
                         reader.Close();
                         Subscricao subscricao = new Subscricao
                         {
-                            Res_type = "subscricao",
+                            Res_type = "subscription",
                             Name = NomeSub,
                             Creation_dt = DateTime.Now,
                             Parent = parent,

@@ -11,5 +11,8 @@ namespace ProjetoIS_D02.Models
         public int id { get; set; }
         public string name { get; set; }
         public DateTime creation_dt { get; set; }
+        public int parent { get; set; }
+        public string Event { get; set; }
+        public string endpoint { get; set; }
     }
 }

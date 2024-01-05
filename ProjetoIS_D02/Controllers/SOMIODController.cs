@@ -256,8 +256,6 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-
-
         [HttpDelete]
         [Route("api/somiod/applications/{id}")]
         public IHttpActionResult DeleteApplication(int id)
@@ -896,13 +894,17 @@ namespace ProjetoIS_D02.Controllers
                 {
                     conn.Open();
 
-                    string query = "INSERT INTO Subscription (Res_type, name, creation_dt) VALUES (@Res_type, @name, @creation_dt)";
+                    string query = "INSERT INTO Subscription VALUES(@name, @creation_dt, @parent, @event, @endpoint)";
 
                     using (SqlCommand command = new SqlCommand(query, conn))
                     {
-                        command.Parameters.AddWithValue("@Res_type", newSubscription.Res_type);
                         command.Parameters.AddWithValue("@name", newSubscription.name);
                         command.Parameters.AddWithValue("@creation_dt", newSubscription.creation_dt);
+                        command.Parameters.AddWithValue("@parent", newSubscription.parent);
+                        command.Parameters.AddWithValue("@endpoint", newSubscription.endpoint);
+                        command.Parameters.AddWithValue("@event", newSubscription.Event);
+
+
 
                         int rowsAffected = command.ExecuteNonQuery();
 
