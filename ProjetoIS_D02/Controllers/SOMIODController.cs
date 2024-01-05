@@ -164,6 +164,48 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/somiod")]
+        public IHttpActionResult GetApplicationsName()
+        {
+            try
+            {
+                List<string> applicationNames = new List<string>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT name FROM Application";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                string appName = sqlReader.GetString(0);
+                                applicationNames.Add(appName);
+                            }
+                        }
+                    }
+                }
+
+                var serializer = new XmlSerializer(typeof(List<string>));
+                StringWriter xmlString = new StringWriter();
+
+                serializer.Serialize(xmlString, applicationNames);
+
+                return Ok(xmlString.ToString());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving application names in XML format");
+            }
+        }
+
+
 
         //CRUD APPLICATION
 
@@ -393,6 +435,52 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error retrieving container by ID");
             }
         }
+
+        [HttpGet]
+        [Route("api/somiod/application/{parentId}/containers")]
+        public IHttpActionResult GetContainersByParentId(int parentId)
+        {
+            try
+            {
+                List<string> containerNames = new List<string>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT name FROM Container WHERE parent = @parentId";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@parentId", parentId);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                string containerName = sqlReader.GetString(0);
+                                containerNames.Add(containerName);
+                            }
+                        }
+                    }
+                }
+
+                // Use XmlSerializer without a wrapper class
+                var serializer = new XmlSerializer(typeof(List<string>));
+                StringWriter xmlString = new StringWriter();
+
+                // Serialize the list of strings directly
+                serializer.Serialize(xmlString, containerNames);
+
+                return Ok(xmlString.ToString());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving container names by parent ID in XML format");
+            }
+        }
+
 
 
         [HttpPut]
