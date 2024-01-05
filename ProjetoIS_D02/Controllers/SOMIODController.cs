@@ -23,12 +23,17 @@ using Data = ProjetoIS_D02.Models.Data;
 using Subscription = ProjetoIS_D02.Models.Subscription;
 using Newtonsoft.Json;
 using System.Web.Script.Serialization;
+using System.Diagnostics;
 
 namespace ProjetoIS_D02.Controllers
 {
     public class SOMIODController : ApiController
     {
         string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["ProjetoIS_D02.Properties.Settings.connStr"].ConnectionString;
+        MqttClient mClient;
+        string path = @"C:\DevelopmentIS\";
+
+
 
         [HttpPost]
         [Route("api/somiod")]
@@ -158,6 +163,48 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error retrieving application by ID");
             }
         }
+
+        [HttpGet]
+        [Route("api/somiod")]
+        public IHttpActionResult GetApplicationsName()
+        {
+            try
+            {
+                List<string> applicationNames = new List<string>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT name FROM Application";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                string appName = sqlReader.GetString(0);
+                                applicationNames.Add(appName);
+                            }
+                        }
+                    }
+                }
+
+                var serializer = new XmlSerializer(typeof(List<string>));
+                StringWriter xmlString = new StringWriter();
+
+                serializer.Serialize(xmlString, applicationNames);
+
+                return Ok(xmlString.ToString());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving application names in XML format");
+            }
+        }
+
 
 
         //CRUD APPLICATION
@@ -298,6 +345,7 @@ namespace ProjetoIS_D02.Controllers
             }
             catch (Exception ex)
             {
+                
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return BadRequest("Error processing data");
             }
@@ -387,6 +435,52 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error retrieving container by ID");
             }
         }
+
+        [HttpGet]
+        [Route("api/somiod/application/{parentId}/containers")]
+        public IHttpActionResult GetContainersByParentId(int parentId)
+        {
+            try
+            {
+                List<string> containerNames = new List<string>();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = "SELECT name FROM Container WHERE parent = @parentId";
+
+                    using (SqlCommand command = new SqlCommand(query, conn))
+                    {
+                        command.Parameters.AddWithValue("@parentId", parentId);
+
+                        using (SqlDataReader sqlReader = command.ExecuteReader())
+                        {
+                            while (sqlReader.Read())
+                            {
+                                string containerName = sqlReader.GetString(0);
+                                containerNames.Add(containerName);
+                            }
+                        }
+                    }
+                }
+
+                // Use XmlSerializer without a wrapper class
+                var serializer = new XmlSerializer(typeof(List<string>));
+                StringWriter xmlString = new StringWriter();
+
+                // Serialize the list of strings directly
+                serializer.Serialize(xmlString, containerNames);
+
+                return Ok(xmlString.ToString());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                return BadRequest("Error retrieving container names by parent ID in XML format");
+            }
+        }
+
 
 
         [HttpPut]
@@ -582,6 +676,24 @@ namespace ProjetoIS_D02.Controllers
                         int newId = Convert.ToInt32(command.ExecuteScalar());
 
                         data.id = newId;
+
+                        string names = @"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt";
+
+
+                        string lastLine = File.ReadLines(names).LastOrDefault(); // if the file is empty
+
+                        Char lastChar = '\0';
+                        if (lastLine != null) lastChar = lastLine.LastOrDefault();
+
+                        Trace.WriteLine(lastLine);
+
+                        int numRegistos = command.ExecuteNonQuery();
+                        conn.Close();
+
+                        mClient = new MqttClient(IPAddress.Parse("127.0.0.1"));
+                        mClient.Connect(Guid.NewGuid().ToString());
+
+                        mClient.Publish(lastLine, Encoding.UTF8.GetBytes(data.content));
                     }
                 }
 
@@ -592,6 +704,11 @@ namespace ProjetoIS_D02.Controllers
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return BadRequest("Error creating data");
             }
+        }
+
+        private void mqttClient_MqttMsgPublishReceivedStatus(object sender, uPLibrary.Networking.M2Mqtt.Messages.MqttMsgPublishEventArgs e)
+        {
+            var message = Encoding.UTF8.GetString(e.Message);
         }
 
         [HttpPut]
@@ -767,8 +884,6 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("An unexpected error occurred while processing the request.");
             }
         }
-
-
 
 
         [HttpPost]
