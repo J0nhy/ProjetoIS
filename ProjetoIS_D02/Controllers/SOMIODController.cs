@@ -38,7 +38,6 @@ namespace ProjetoIS_D02.Controllers
 
         //teste
         #region CRUD GET GERAL
-        // PARA APAGAR
         [HttpGet] // é preciso o somiod discover
         [Route("api/somiod/{application}/")]
 
@@ -97,7 +96,7 @@ namespace ProjetoIS_D02.Controllers
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                     return BadRequest("Error retrieving application names");
                 }
@@ -160,7 +159,7 @@ namespace ProjetoIS_D02.Controllers
         }
         #endregion
 
-        //
+        
         //FEITO
         #region CRUD APPLICATION
         //FEITO
@@ -345,6 +344,7 @@ namespace ProjetoIS_D02.Controllers
                 return BadRequest("Error deleting application");
             }
         }
+
 
         #endregion
 

@@ -436,42 +436,6 @@ namespace Valvula
             }
         }
 
-        private void button7_Click(object sender, EventArgs e)
-        {
-            //listBox1.Items.Add(Encoding.UTF8.GetString(e.Message));
-
-            if (listBox1.Items.Count > 0)
-            {
-                label4.Text = listBox1.Items[listBox1.Items.Count - 1].ToString();
-            }
-
-            // Stop any currently playing video
-            axWindowsMediaPlayer.Ctlcontrols.stop();
-
-            if (label4.Text == "Off")
-            {
-
-                Image newImage = Image.FromFile(imgOn);
-                pictureBox1.Image = newImage;
-
-                // Play the video for "On"
-                axWindowsMediaPlayer.URL = videoOn;
-                axWindowsMediaPlayer.Ctlcontrols.play();
-                label4.Text = "On";
-
-            }
-            else if (label4.Text == "On")
-            {
-
-                Image newImage = Image.FromFile(imgOff);
-                pictureBox1.Image = newImage;
-
-                // Play the video for "Off"
-                axWindowsMediaPlayer.URL = videoOff;
-                axWindowsMediaPlayer.Ctlcontrols.play();
-                label4.Text = "Off";
-
-            }
-        }
+        
     }
 }
