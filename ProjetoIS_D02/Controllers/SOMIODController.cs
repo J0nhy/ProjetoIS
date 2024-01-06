@@ -105,21 +105,23 @@ namespace ProjetoIS_D02.Controllers
                         string query = null;
                         if (somiodDiscoverHeaderValue == "container")
                         {
-                            query = "SELECT name FROM Container";
+                            query = "SELECT Container.name FROM Container JOIN Application ON Container.parent = Application.id WHERE Application.name = @application";
                         }
                         if (somiodDiscoverHeaderValue == "subscription")
                         {
-                            query = "SELECT name FROM Subscription";
+                            query = "SELECT Subscription.name FROM Subscription JOIN container ON Subscription.parent = container.id JOIN application ON container.parent = application.id WHERE application.name = @application";
                         }
                         if (somiodDiscoverHeaderValue == "data")
                         {
-                            query = "SELECT name FROM Data";
+                            query = "SELECT Data.name FROM Data JOIN container ON Data.parent = container.id JOIN application ON container.parent = application.id WHERE application.name = @application";
                         }
 
                         conn.Open();
 
                         using (SqlCommand command = new SqlCommand(query, conn))
                         {
+                            command.Parameters.AddWithValue("@application", application);
+
                             using (SqlDataReader sqlReader = command.ExecuteReader())
                             {
                                 while (sqlReader.Read())
@@ -141,6 +143,7 @@ namespace ProjetoIS_D02.Controllers
                 }
                 catch (Exception ex)
                 {
+                    throw ex;
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                     return BadRequest("Error retrieving names");
                 }
