@@ -8,8 +8,8 @@ namespace Switch.Models
     public class Application
     {
         public string Res_type { get; set; }
-        public int id { get; set; }
-        public string name { get; set; }
-        public DateTime creation_dt { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime Creation_dt { get; set; }
     }
 }

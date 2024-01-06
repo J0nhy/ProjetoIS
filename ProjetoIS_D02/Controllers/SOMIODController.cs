@@ -151,8 +151,6 @@ namespace ProjetoIS_D02.Controllers
         }
         #endregion
 
-
-
         //
         //FEITO
         #region CRUD APPLICATION
@@ -400,49 +398,6 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-        //FICA? NAO, PARA REMOVER
-        [HttpGet]
-        [Route("api/somiod/container")]
-        public IHttpActionResult GetAllContainers()
-        {
-            try
-            {
-                List<Container> containers = new List<Container>();
-
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    string query = "SELECT id, name, creation_dt, parent FROM Container";
-
-                    using (SqlCommand command = new SqlCommand(query, conn))
-                    {
-                        using (SqlDataReader sqlReader = command.ExecuteReader())
-                        {
-                            while (sqlReader.Read())
-                            {
-                                Container container = new Container
-                                {
-                                    Id = sqlReader.GetInt32(0),
-                                    Name = sqlReader.GetString(1),
-                                    Creation_dt = sqlReader.GetDateTime(2),
-                                    Parent = sqlReader.GetInt32(3),
-                                };
-                                containers.Add(container);
-                            }
-                        }
-                    }
-                }
-
-                return Ok(containers);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving containers");
-            }
-        }
-
         //Feito
         [HttpGet] //search 1
         [Route("api/somiod/{application}/{name}")]
@@ -486,78 +441,6 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
-        // PARA APAGAR
-       // [HttpGet]// 
-        //[Route("api/somiod/{application}/")]
-      /*  public IHttpActionResult GetContainersByParentName(string application)
-        {
-            try
-            {
-                List<string> containerNames = new List<string>();
-
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    // Find the parent ID based on the parent name
-                    string parentIdQuery = "SELECT id FROM Application WHERE name = @application";
-                    int parentId;
-
-                    using (SqlCommand parentIdCommand = new SqlCommand(parentIdQuery, conn))
-                    {
-                        parentIdCommand.Parameters.AddWithValue("@application", application);
-                        object result = parentIdCommand.ExecuteScalar();
-
-                        if (result != null && int.TryParse(result.ToString(), out parentId))
-                        {
-                            // Parent ID found, now retrieve container names
-                            string query = "SELECT name FROM Container WHERE parent = @parentId";
-
-                            using (SqlCommand command = new SqlCommand(query, conn))
-                            {
-                                command.Parameters.AddWithValue("@parentId", parentId);
-
-                                using (SqlDataReader sqlReader = command.ExecuteReader())
-                                {
-                                    while (sqlReader.Read())
-                                    {
-                                        string containerName = sqlReader.GetString(0);
-                                        containerNames.Add(containerName);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            return BadRequest("Parent not found");
-                        }
-                    }
-                }
-
-                // Use XmlWriter to manually construct XML
-                StringBuilder xmlStringBuilder = new StringBuilder();
-                using (XmlWriter xmlWriter = XmlWriter.Create(xmlStringBuilder, new XmlWriterSettings { Indent = true }))
-                {
-                    xmlWriter.WriteStartDocument();
-                    xmlWriter.WriteStartElement("ArrayOfString");
-
-                    foreach (string containerName in containerNames)
-                    {
-                        xmlWriter.WriteElementString("string", containerName);
-                    }
-
-                    xmlWriter.WriteEndElement();
-                    xmlWriter.WriteEndDocument();
-                }
-
-                return Ok(xmlStringBuilder.ToString());
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                return BadRequest("Error retrieving container names by parent name in XML format");
-            }
-        }*/
 
         //FEITO
         [HttpPut]
@@ -696,7 +579,24 @@ namespace ProjetoIS_D02.Controllers
 
                     //command.Parameters.AddWithValue("@content", "pastilhas");
                     command.Parameters.AddWithValue("@parent", parentApp.Id);
-                    SqlDataReader sqlReader = command.ExecuteReader();
+
+                    string names = @"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt";
+
+
+                    string lastLine = File.ReadLines(names).LastOrDefault(); // if the file is empty
+
+                    Char lastChar = '\0';
+                    if (lastLine != null) lastChar = lastLine.LastOrDefault();
+
+                    Trace.WriteLine(lastLine);
+
+                    int numRegistos = command.ExecuteNonQuery();
+                    conn.Close();
+
+                    mClient = new MqttClient(IPAddress.Parse("127.0.0.1"));
+                    mClient.Connect(Guid.NewGuid().ToString());
+
+                    mClient.Publish(lastLine, Encoding.UTF8.GetBytes(data.Content));
 
                     return Ok();
                 }
@@ -1057,8 +957,6 @@ namespace ProjetoIS_D02.Controllers
 
 
         #endregion
-
-
 
 
         private Application GetApplicationByName(string applicationName)

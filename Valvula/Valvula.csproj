@@ -124,7 +124,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Models\Models\Subscricao.cs" />
+    <Compile Include="Models\Models\Subscription.cs" />
     <Compile Include="Models\Models\Container.cs" />
     <Compile Include="Models\Models\Dados.cs" />
     <Compile Include="Models\Models\Application.cs" />

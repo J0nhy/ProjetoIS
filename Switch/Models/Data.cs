@@ -8,9 +8,11 @@ namespace Switch.Models
     public class Data
     {
         public string Res_type { get; set; }
-        public int id { get; set; }
-        public string content { get; set; }
-        public DateTime creation_dt { get; set; }
-        public int parent {  get; set; }
+        public int Id { get; set; }
+        public string Content { get; set; }
+        public DateTime Creation_dt { get; set; }
+        public int Parent {  get; set; }
+        public string Name { get; set; }
+
     }
 }

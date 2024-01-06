@@ -41,59 +41,46 @@ namespace Switch
         //Ligar/Abrir Válvula
         private void btnOn_Click(object sender, EventArgs e)
         {
-            //Definir Conexão à BD
             SqlConnection con = new SqlConnection(conn_string);
-
             string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
             SqlDataReader SR = null;
             con.Open();
 
-            //Selecionar id do container com o nome a ser usado
             string sql = "SELECT Id FROM Container WHERE name=@name";
             SqlCommand cmd = new SqlCommand(sql, con);
             cmd.Parameters.AddWithValue("@name", ContainerName);
 
-            //Selecionar id da App com o nome a ser usada
             SqlDataReader SRapp = null;
             string sqlApp = "SELECT Id FROM Application WHERE name=@nameApp";
             SqlCommand cmdApp = new SqlCommand(sqlApp, con);
             cmdApp.Parameters.AddWithValue("@nameApp", AppName);
 
-
-            //Selecionar Parent do container com o nome a ser usado
             SqlDataReader SRcontainer = null;
-            //con.Open();
             string sqlContainer = "SELECT Parent FROM Container WHERE name=@nameContainer";
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/data", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}/data", Method.Post);
 
-
-            //Caminho com nomes
             string json = File.ReadAllText(@"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
-            //verificar se o nome da App do ficheiro é igual ao inserido
             if (json == textBoxContainerName.Text)
             {
-                //Leitura da App
                 SRapp = cmdApp.ExecuteReader();
                 if (SRapp.Read())
                 {
                     int idApp = (int)SRapp.GetValue(0);
                     SRapp.Close();
 
-                    //Leitura do Container
                     SRcontainer = cmdContainer.ExecuteReader();
                     if (SRcontainer.Read())
                     {
                         int parentContainer = (int)SRcontainer.GetValue(0);
                         SRcontainer.Close();
 
-                        //Comparar id da app com o id do parent do Container
                         SR = cmd.ExecuteReader();
                         if (idApp == parentContainer && SR.Read())
                         {
@@ -103,21 +90,28 @@ namespace Switch
                             Data data = new Data
                             {
                                 Res_type = "data",
-                                content = "On",
-                                creation_dt = DateTime.Now,
-                                parent = parent,
-
+                                Content = "On",
+                                Name = "On" + DateTime.Now.ToString(),
+                                Creation_dt = DateTime.Now,
+                                Parent = parent,
                             };
 
-                            request.AddBody(data);
+                            // Convert the Data object to XML
+                            string xml;
+                            XmlSerializer serializer = new XmlSerializer(typeof(Data));
+                            using (StringWriter writer = new StringWriter())
+                            {
+                                serializer.Serialize(writer, data);
+                                xml = writer.ToString();
+                            }
+
+                            request.AddParameter("application/xml", xml, ParameterType.RequestBody);
                             request.AddUrlSegment("application", textBoxAppName.Text);
                             request.AddUrlSegment("container", textBoxContainerName.Text);
-
 
                             var response = client.Execute(request);
                             MessageBox.Show(response.StatusCode.ToString());
                             con.Close();
-
                         }
                         else
                         {
@@ -142,10 +136,10 @@ namespace Switch
                 MessageBox.Show("DOESN'T HAVE THE SAME TOPIC AS THE GATE");
                 con.Close();
             }
-
         }
+    
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+    private void panel1_Paint(object sender, PaintEventArgs e)
         {
     
         }
@@ -176,9 +170,9 @@ namespace Switch
                 var container = new Models.Container
                 {
                     Res_type = "container",
-                    name = name,
-                    creation_dt = DateTime.Now,
-                    parent = parent
+                    Name = name,
+                    Creation_dt = DateTime.Now,
+                    Parent = parent
                 };
 
                 var serializer = new XmlSerializer(typeof(Models.Container));
@@ -214,32 +208,30 @@ namespace Switch
             string ContainerName = textBoxContainerName.Text;
             string AppName = textBoxAppName.Text;
 
-
             SqlDataReader SR = null;
             con.Open();
 
-            //Selecionar container com o nome dado
+            // Selecionar container com o nome dado
             string sql = "SELECT Id FROM Container WHERE name=@name";
             SqlCommand cmd = new SqlCommand(sql, con);
             cmd.Parameters.AddWithValue("@name", ContainerName);
 
-            //Selecionar app com o nome dado
+            // Selecionar app com o nome dado
             SqlDataReader SRapp = null;
             string sqlApp = "SELECT Id FROM Application WHERE Name=@nameApp";
             SqlCommand cmdApp = new SqlCommand(sqlApp, con);
             cmdApp.Parameters.AddWithValue("@nameApp", AppName);
 
             SqlDataReader SRcontainer = null;
-            
-            //Selecionar parent do container
+
+            // Selecionar parent do container
             string sqlModule = "SELECT Parent FROM Container WHERE name=@nameContainer";
             SqlCommand cmdContainer = new SqlCommand(sqlModule, con);
             cmdContainer.Parameters.AddWithValue("@nameContainer", ContainerName);
 
-            RestRequest request = new RestRequest("api/somiod/data", Method.Post);
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}/data", Method.Post);
 
-
-            //Caminho com nomes
+            // Caminho com nomes
             string json = File.ReadAllText(@"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt");
             json = json.Remove(json.Length - 2);
 
@@ -250,7 +242,6 @@ namespace Switch
                 {
                     int idApp = (int)SRapp.GetValue(0);
                     SRapp.Close();
-
 
                     SRcontainer = cmdContainer.ExecuteReader();
                     if (SRcontainer.Read())
@@ -263,50 +254,56 @@ namespace Switch
                         {
                             int parent = (int)SR.GetValue(0);
                             SR.Close();
+
                             Data data = new Data
                             {
                                 Res_type = "data",
-                                content = "Off",
-                                creation_dt = DateTime.Now,
-                                parent = parent,
-
+                                Content = "Off",
+                                Name = "Off" + DateTime.Now.ToString(),
+                                Creation_dt = DateTime.Now,
+                                Parent = parent,
                             };
 
-                            request.AddBody(data);
+                            // Convert the Data object to XML
+                            string xml;
+                            XmlSerializer serializer = new XmlSerializer(typeof(Data));
+                            using (StringWriter writer = new StringWriter())
+                            {
+                                serializer.Serialize(writer, data);
+                                xml = writer.ToString();
+                            }
+
+                            request.AddParameter("application/xml", xml, ParameterType.RequestBody);
                             request.AddUrlSegment("application", textBoxAppName.Text);
                             request.AddUrlSegment("container", textBoxContainerName.Text);
-
 
                             var response = client.Execute(request);
                             MessageBox.Show(response.StatusCode.ToString());
                             con.Close();
-
-
                         }
                         else
                         {
-                            MessageBox.Show("THE ID OF THE APP DOESNT MATCH THE CONTAINER PARENT");
-                            con.Close();
+                            MessageBox.Show("THE ID OF THE APP DOESN'T MATCH THE CONTAINER PARENT");
                         }
                     }
                     else
                     {
-                        MessageBox.Show("CONTAINER DOESNT EXIST");
-                        con.Close();
+                        MessageBox.Show("CONTAINER DOESN'T EXIST");
                     }
                 }
                 else
                 {
-                    MessageBox.Show("APPLICATION DOESNT EXIST");
-                    con.Close();
+                    MessageBox.Show("APPLICATION DOESN'T EXIST");
                 }
             }
             else
             {
                 MessageBox.Show("DOESN'T HAVE THE SAME TOPIC AS THE GATE");
-                con.Close();
             }
+
+            con.Close();
         }
+
 
         private void Comando_Load(object sender, EventArgs e)
         {

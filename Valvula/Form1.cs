@@ -14,7 +14,7 @@ using Valvula.Properties;
 using RestSharp;
 using Application = Valvula.Models.Application;
 using Container = Valvula.Models.Container;
-using Subscricao = Valvula.Models.Subscricao;
+using Subscription = Valvula.Models.Subscription;
 using Dados = Valvula.Models.Dados;
 using System.IO;
 using System.Net;
@@ -83,9 +83,9 @@ namespace Valvula
 
             Application app = new Application
             {
-                res_type = "Aplicacao",
-                name = txtNovoNomeApp.Text,
-                creation_dt = DateTime.Now
+                res_type = "Application",
+                Name = txtNovoNomeApp.Text,
+                Creation_dt = DateTime.Now
             };
 
             var serializer = new XmlSerializer(typeof(Application));
@@ -125,9 +125,9 @@ namespace Valvula
                 var container = new Container
                 {
                     Res_type = "container",
-                    name = name,
-                    creation_dt = DateTime.Now,
-                    parent = parent
+                    Name = name,
+                    Creation_dt = DateTime.Now,
+                    Parent = parent
                 };
 
                 var serializer = new XmlSerializer(typeof(Container));
@@ -157,7 +157,7 @@ namespace Valvula
 
         }
 
-        private void button4_Click(object sender, EventArgs e)//post Subscription  
+        private void button4_Click(object sender, EventArgs e)
         {
             SqlConnection conn = new SqlConnection(conn_string);
 
@@ -167,8 +167,7 @@ namespace Valvula
             string Event = txtEvent.Text;
             string Endpoint = txtEndpoint.Text;
 
-            RestRequest request = new RestRequest("api/somiod/subscriptions", Method.Post);
-
+            RestRequest request = new RestRequest("api/somiod/{application}/{container}/sub", Method.Post);
 
             SqlDataReader reader = null;
             SqlDataReader readercontainer = null;
@@ -187,7 +186,6 @@ namespace Valvula
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, conn);
             cmdContainer.Parameters.AddWithValue("@nameCont", NomeContainer);
 
-
             readerapp = cmdApp.ExecuteReader();
             if (readerapp.Read())
             {
@@ -203,10 +201,10 @@ namespace Valvula
                     reader = cmd.ExecuteReader();
                     if (idApp == parentCont && reader.Read())
                     {
-
                         int parent = (int)reader.GetValue(0);
                         reader.Close();
-                        Subscricao subscricao = new Subscricao
+
+                        Subscription subscription = new Subscription
                         {
                             Res_type = "subscription",
                             Name = NomeSub,
@@ -216,16 +214,22 @@ namespace Valvula
                             Endpoint = Endpoint
                         };
 
+                        // Serialização do objeto Subscricao para XML
+                        var serializer = new XmlSerializer(typeof(Subscription));
+                        var stringWriter = new StringWriter();
+                        serializer.Serialize(stringWriter, subscription);
+                        string xmlString = stringWriter.ToString();
 
-                        request.AddBody(subscricao);
-                        request.AddUrlSegment("Aplicacao", txtNome.Text);
+                        // Definindo o cabeçalho e corpo da solicitação como XML
+                        request.AddHeader("Content-Type", "application/xml");
+                        request.AddParameter("application/xml", xmlString, ParameterType.RequestBody);
+
+                        request.AddUrlSegment("application", txtNome.Text);
                         request.AddUrlSegment("container", txtNomeContainer.Text);
-
 
                         var response = client.Execute(request);
                         MessageBox.Show("Done: " + response.StatusCode.ToString());
                         conn.Close();
-
                     }
                     else
                     {
@@ -238,18 +242,14 @@ namespace Valvula
                     MessageBox.Show("Error: Container não existe");
                     conn.Close();
                 }
-
             }
             else
             {
                 MessageBox.Show("Error: Aplicacao não existente");
                 conn.Close();
             }
-
-
-
-
         }
+
 
         void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
@@ -372,9 +372,9 @@ namespace Valvula
 
                 Application updatedApp = new Application
                 {
-                    name = novoNomeApp,
+                    Name = novoNomeApp,
                     // Assuming you have a Creation_dt property in your Application class
-                    creation_dt = DateTime.Now
+                    Creation_dt = DateTime.Now
                 };
 
                 // Serialize the updatedApp object to XML
@@ -415,7 +415,7 @@ namespace Valvula
             SqlCommand cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name", nome);
 
-            RestRequest request = new RestRequest("api/somiod/applications/{id}", Method.Delete);
+            RestRequest request = new RestRequest("api/somiod/{id}", Method.Delete);
 
             reader = cmd.ExecuteReader();
             if (reader.Read())
