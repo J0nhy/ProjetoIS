@@ -26,6 +26,7 @@ using System.Web.Script.Serialization;
 using System.Diagnostics;
 using System.CodeDom;
 using System.Xml.Linq;
+using System.Web.Hosting;
 
 namespace ProjetoIS_D02.Controllers
 {
@@ -58,38 +59,45 @@ namespace ProjetoIS_D02.Controllers
                 try
                 {
                     List<string> NamesList = new List<string>();
-
+                    Application applicationInfo = null;
                     using (SqlConnection conn = new SqlConnection(connectionString))
                     {
-                        string query = "SELECT id,name,creation_dt from Application";
+                        string query = "SELECT id,name,creation_dt from Application where name= @application";
 
                         conn.Open();
 
                         using (SqlCommand command = new SqlCommand(query, conn))
                         {
+                            command.Parameters.AddWithValue("@application", application);
+
                             using (SqlDataReader sqlReader = command.ExecuteReader())
                             {
                                 while (sqlReader.Read())
                                 {
-                                    string id = sqlReader.GetString(0);
-                                    string name = sqlReader.GetString(1);
-                                    string creation_dt = sqlReader.GetString(2);
-                                    NamesList.Add(name);
+                                     applicationInfo = new Application
+                                    {
+                                        Id = sqlReader.GetInt32(0),
+                                        Name = sqlReader.GetString(1),
+                                        Creation_dt = sqlReader.GetDateTime(2),
+                                    };
                                 }
                             }
                         }
                     }
 
                     // Serialize the list of names to XML
-                    var serializer = new XmlSerializer(typeof(List<string>));
+                    //var serializer = new XmlSerializer(typeof(List<string>));
+                    var serializer = new XmlSerializer(typeof(Application));
                     var stringWriter = new StringWriter();
-                    serializer.Serialize(stringWriter, NamesList);
+                    //serializer.Serialize(stringWriter, NamesList);
+                    serializer.Serialize(stringWriter, applicationInfo);
                     string xmlString = stringWriter.ToString();
 
                     return Ok(xmlString);
                 }
                 catch (Exception ex)
                 {
+                    throw ex;
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                     return BadRequest("Error retrieving application names");
                 }
@@ -145,7 +153,6 @@ namespace ProjetoIS_D02.Controllers
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                     return BadRequest("Error retrieving names");
                 }
