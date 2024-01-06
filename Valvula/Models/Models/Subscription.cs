@@ -5,7 +5,7 @@ using System.Web;
 
 namespace Valvula.Models
 {
-    public class Subscricao
+    public class Subscription
     {
         public string Res_type { get; set; }
         public int Id { get; set; }
