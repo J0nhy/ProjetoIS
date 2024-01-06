@@ -61,7 +61,7 @@ namespace ProjetoIS_D02.Controllers
 
                     using (SqlConnection conn = new SqlConnection(connectionString))
                     {
-                        string query = "SELECT name from Application";
+                        string query = "SELECT id,name,creation_dt from Application";
 
                         conn.Open();
 
@@ -71,7 +71,9 @@ namespace ProjetoIS_D02.Controllers
                             {
                                 while (sqlReader.Read())
                                 {
-                                    string name = sqlReader.GetString(0);
+                                    string id = sqlReader.GetString(0);
+                                    string name = sqlReader.GetString(1);
+                                    string creation_dt = sqlReader.GetString(2);
                                     NamesList.Add(name);
                                 }
                             }
