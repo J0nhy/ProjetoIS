@@ -617,7 +617,6 @@ namespace ProjetoIS_D02.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return BadRequest("Error processing data");
             }
@@ -751,7 +750,6 @@ namespace ProjetoIS_D02.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return BadRequest("Error retrieving data by name");
             }
@@ -815,14 +813,12 @@ namespace ProjetoIS_D02.Controllers
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                     return BadRequest("Error inserting data into the database");
                 }
             }
             catch (Exception ex)
             {
-                throw ex;
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 return BadRequest("Error processing data");
             }
