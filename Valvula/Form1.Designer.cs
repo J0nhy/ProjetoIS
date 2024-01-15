@@ -70,7 +70,7 @@
             // 
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(9, 9);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(216, 180);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -155,17 +155,17 @@
             // 
             // txtNovoNomeContainer
             // 
-            this.txtNovoNomeContainer.Location = new System.Drawing.Point(7, 49);
+            this.txtNovoNomeContainer.Location = new System.Drawing.Point(21, 38);
             this.txtNovoNomeContainer.Name = "txtNovoNomeContainer";
-            this.txtNovoNomeContainer.Size = new System.Drawing.Size(113, 20);
+            this.txtNovoNomeContainer.Size = new System.Drawing.Size(80, 20);
             this.txtNovoNomeContainer.TabIndex = 59;
             this.txtNovoNomeContainer.Text = "ContainerNovo";
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(7, 73);
+            this.button1.Location = new System.Drawing.Point(86, 100);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(113, 37);
+            this.button1.Size = new System.Drawing.Size(80, 21);
             this.button1.TabIndex = 58;
             this.button1.Text = "Subscribe Channel";
             this.button1.UseVisualStyleBackColor = true;
@@ -190,7 +190,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(295, 84);
+            this.label7.Location = new System.Drawing.Point(295, 70);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(49, 13);
             this.label7.TabIndex = 70;
@@ -207,7 +207,7 @@
             // 
             // txtEndpoint
             // 
-            this.txtEndpoint.Location = new System.Drawing.Point(297, 101);
+            this.txtEndpoint.Location = new System.Drawing.Point(296, 86);
             this.txtEndpoint.Name = "txtEndpoint";
             this.txtEndpoint.Size = new System.Drawing.Size(88, 20);
             this.txtEndpoint.TabIndex = 68;
@@ -223,7 +223,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(30, 103);
+            this.label5.Location = new System.Drawing.Point(18, 80);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(94, 13);
             this.label5.TabIndex = 66;
@@ -231,10 +231,10 @@
             // 
             // txtNomeSub
             // 
-            this.txtNomeSub.Location = new System.Drawing.Point(124, 101);
-            this.txtNomeSub.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtNomeSub.Location = new System.Drawing.Point(21, 95);
+            this.txtNomeSub.Margin = new System.Windows.Forms.Padding(2);
             this.txtNomeSub.Name = "txtNomeSub";
-            this.txtNomeSub.Size = new System.Drawing.Size(80, 20);
+            this.txtNomeSub.Size = new System.Drawing.Size(91, 20);
             this.txtNomeSub.TabIndex = 65;
             // 
             // label3
@@ -249,7 +249,7 @@
             // txtNomeContainer
             // 
             this.txtNomeContainer.Location = new System.Drawing.Point(124, 63);
-            this.txtNomeContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtNomeContainer.Margin = new System.Windows.Forms.Padding(2);
             this.txtNomeContainer.Name = "txtNomeContainer";
             this.txtNomeContainer.Size = new System.Drawing.Size(80, 20);
             this.txtNomeContainer.TabIndex = 63;
@@ -276,9 +276,10 @@
             this.panelContainer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelContainer.Controls.Add(this.label15);
             this.panelContainer.Controls.Add(this.txtNovoNomeContainer);
-            this.panelContainer.Controls.Add(this.button1);
+            this.panelContainer.Controls.Add(this.label5);
+            this.panelContainer.Controls.Add(this.txtNomeSub);
             this.panelContainer.Location = new System.Drawing.Point(254, 221);
-            this.panelContainer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.panelContainer.Margin = new System.Windows.Forms.Padding(2);
             this.panelContainer.Name = "panelContainer";
             this.panelContainer.Size = new System.Drawing.Size(136, 134);
             this.panelContainer.TabIndex = 73;
@@ -286,7 +287,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(4, 27);
+            this.label15.Location = new System.Drawing.Point(18, 22);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(83, 13);
             this.label15.TabIndex = 74;
@@ -298,16 +299,15 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.txtNome);
             this.panel1.Controls.Add(this.label2);
+            this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.label7);
             this.panel1.Controls.Add(this.txtNomeContainer);
             this.panel1.Controls.Add(this.label6);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.txtEndpoint);
-            this.panel1.Controls.Add(this.txtNomeSub);
             this.panel1.Controls.Add(this.txtEvent);
-            this.panel1.Controls.Add(this.label5);
             this.panel1.Location = new System.Drawing.Point(254, 24);
-            this.panel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(407, 148);
             this.panel1.TabIndex = 75;
@@ -329,7 +329,7 @@
             this.panel2.Controls.Add(this.txtNovoNomeApp);
             this.panel2.Controls.Add(this.label8);
             this.panel2.Location = new System.Drawing.Point(389, 221);
-            this.panel2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.panel2.Margin = new System.Windows.Forms.Padding(2);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(135, 134);
             this.panel2.TabIndex = 75;
@@ -372,7 +372,7 @@
             this.Controls.Add(this.panelContainer);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.axWindowsMediaPlayer1);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "Form1";
             this.Shown += new System.EventHandler(this.Form1_Load);

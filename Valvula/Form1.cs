@@ -298,7 +298,7 @@ namespace Valvula
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string[] str_container = { txtNovoNomeContainer.Text };
+            string[] str_container = { txtNomeContainer.Text };
             SqlConnection conn = new SqlConnection(conn_string);
 
             conn.Open();
@@ -306,7 +306,7 @@ namespace Valvula
 
             string sqlContainer = "select Parent from Container where name=@nomeContainer";
             SqlCommand cmdContainer = new SqlCommand(sqlContainer, conn);
-            cmdContainer.Parameters.AddWithValue("@nomeContainer", txtNovoNomeContainer.Text);
+            cmdContainer.Parameters.AddWithValue("@nomeContainer", txtNomeContainer.Text);
 
             readercontainer = cmdContainer.ExecuteReader();
             if (readercontainer.Read())
@@ -332,7 +332,7 @@ namespace Valvula
 
                 File.WriteAllText(names, String.Empty);
                 StreamWriter writer = new StreamWriter(names, true);
-                writer.WriteLine(txtNovoNomeContainer.Text);
+                writer.WriteLine(txtNomeContainer.Text);
                 writer.Dispose();
             }
             else

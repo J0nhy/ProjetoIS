@@ -450,6 +450,8 @@ namespace ProjetoIS_D02.Controllers
             }
         }
 
+        
+
 
         //FEITO
         [HttpPut]
@@ -586,7 +588,6 @@ namespace ProjetoIS_D02.Controllers
                     command.Parameters.AddWithValue("@content", data.Content);
                     command.Parameters.AddWithValue("@name", data.Name);
 
-                    //command.Parameters.AddWithValue("@content", "pastilhas");
                     command.Parameters.AddWithValue("@parent", parentApp.Id);
 
                     string names = @"" + path + "\\ProjetoIS_D02\\Valvula\\bin\\Debug\\Names.txt";
@@ -606,6 +607,7 @@ namespace ProjetoIS_D02.Controllers
                     mClient.Connect(Guid.NewGuid().ToString());
 
                     mClient.Publish(lastLine, Encoding.UTF8.GetBytes(data.Content));
+
 
                     return Ok();
                 }
